@@ -1,5 +1,6 @@
 name: TiempoReal
-description: Plugin para sincronizar la hora real con la del juego.
-version: 1.0-SNAPSHOT
+description: Plugin para sincronizar la hora real con la del juego. Añade la visualización de la hora exacta a ítems de relojes.
+version: 1.1-SNAPSHOT
 author: AlexTMjugador (AlexBlocks123)
 main: io.github.alextmjugador.tiemporeal.TiempoReal
+depend: [ActionBarAPI]

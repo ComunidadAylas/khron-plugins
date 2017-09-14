@@ -16,41 +16,42 @@
  */
 package io.github.alextmjugador.tiemporeal;
 
+import com.connorlinfoot.actionbarapi.ActionBarAPI;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarStyle;
-import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.event.player.PlayerKickEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 /**
- * Modela un plugin que sincroniza el tiempo real del servidor con el tiempo de todos los mundos del juego.
+ * Modela un plugin que sincroniza el tiempo real del servidor con el tiempo de todos los mundos del juego. También muestra la hora real al empuñar un reloj.
  * @author AlexTMjugador
  */
 public class TiempoReal extends JavaPlugin implements Listener {
-    private static final String TEXTO_PREDET_BARRA_HORA = "§lHora en Khron: §n§7--:--";
-    private static final BossBar BARRA_HORA = Bukkit.createBossBar(TEXTO_PREDET_BARRA_HORA, BarColor.WHITE, BarStyle.SOLID);
+    /**
+     * Contiene los jugadores que están visualizando un reloj.
+     */
+    private final List<Player> JUGADORES_RELOJ = new ArrayList<>(Math.max(getServer().getMaxPlayers() / 5, 1));
     
     /**
-     * Inicializa y planea los objetos necesarios para sincronizar el tiempo.
+     * Inicializa y planea los objetos necesarios para sincronizar el tiempo y relojes.
      */
     @Override
     public void onEnable() {
-        // Visualiza la hora para todos los jugadores que pudiera haber
-        for (Player p : Bukkit.getOnlinePlayers()) {
-            mostrarHora(p);
-        }
-        
-        // Eventos para visualizar la hora
+        // Eventos para gestión de los relojes
         getServer().getPluginManager().registerEvents(this, this);
         
-        // Tarea para sincronizar el tiempo
+        // Tarea para sincronizar el tiempo y relojes cada tick
         new SincronizarTiempo().runTaskTimer(this, 0, 1);
     }
 
@@ -59,21 +60,45 @@ public class TiempoReal extends JavaPlugin implements Listener {
      */
     @Override
     public void onDisable() {
-        ocultarHora();
         Bukkit.getScheduler().cancelTasks(this);
     }
     
     /**
-     * Muestra la hora a jugadores que se unen.
-     * @param event El evento de unión del jugador.
+     * Muestra u oculta la hora a jugadores que empuñan un reloj o lo guardan.
+     * @param event El evento de cambio de ítem seleccionado.
      */
     @EventHandler
-    public void onJoin(PlayerJoinEvent event) {
-        mostrarHora(event.getPlayer());
+    public void onItemHeld(PlayerItemHeldEvent event) {
+        Player p = event.getPlayer();
+        ItemStack stack = p.getInventory().getItem(event.getNewSlot());
+        
+        if (stack.getType().equals(Material.WATCH)) {
+            mostrarHora(p);
+        } else {
+            ocultarHora(p);
+        }
     }
     
     /**
-     * Tarea para sincronizar la hora del día de todos los mundos con la del servidor.
+     * Oculta la hora a jugadores que se desconecten, si la estaban mirando.
+     * @param event El evento de desconexión del jugador.
+     */
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        ocultarHora(event.getPlayer());
+    }
+    
+    /**
+     * Oculta la hora a jugadores que sean echados del juego, si la estaban mirando.
+     * @param event El evento de expulsión del jugador.
+     */
+    @EventHandler
+    public void onKick(PlayerKickEvent event) {
+        ocultarHora(event.getPlayer());
+    }
+    
+    /**
+     * Tarea para sincronizar la hora del día de todos los mundos con la del servidor. También muestra una representación
      */
     private class SincronizarTiempo extends BukkitRunnable {
         /**
@@ -81,25 +106,34 @@ public class TiempoReal extends JavaPlugin implements Listener {
          */
         @Override
         public void run() {
+            Calendar horaServidor = Calendar.getInstance();
+            
             // Calcular equivalencia hora real-ticks de Minecraft
-            Calendar c = Calendar.getInstance();
-            byte h_real = (byte) c.get(Calendar.HOUR_OF_DAY);
+            byte h_real = (byte) horaServidor.get(Calendar.HOUR_OF_DAY);
             byte h = (byte) ((h_real - 6 + 24) % 24);
-            byte m = (byte) c.get(Calendar.MINUTE);
-            byte s = (byte) c.get(Calendar.SECOND);
-            int ms = c.get(Calendar.MILLISECOND);
+            byte m = (byte) horaServidor.get(Calendar.MINUTE);
+            byte s = (byte) horaServidor.get(Calendar.SECOND);
+            int ms = horaServidor.get(Calendar.MILLISECOND);
             long ticks = (h * 1000) + ((m * 50) / 3) + ((s * 5) / 18) + (ms / 3600);    // Se obtiene tras simplificar h * 1000 + (m / 60) * 1000 + (s / 3600) * 1000) + (ms / 1000 / 3600) * 1000
             
-            // Actualizar display de la hora
-            BARRA_HORA.setTitle(TEXTO_PREDET_BARRA_HORA.replaceFirst("--:--",
-                    new StringBuilder().append(String.format("%02d", h_real))
-                            .append(":")
-                            .append(String.format("%02d", m))
-                            .toString()
-            ));
+            // Actualizar display de la hora a jugadores interesados
+            if (JUGADORES_RELOJ.size() > 0) {
+                String hora = new StringBuilder().append(String.format("%02d", h_real))
+                        .append(":")
+                        .append(String.format("%02d", m))
+                        .toString();
+
+                StringBuilder texto = new StringBuilder();
+                texto.append("§bEl reloj marca las §l");
+                texto.append(hora);
+                
+                for (Player p : JUGADORES_RELOJ) {
+                    ActionBarAPI.sendActionBar(p, texto.toString());
+                }
+            }
             
-            // Para todos los mundos, asegurarse de que Minecraft no afecta al ciclo día-noche y establecer la hora apropiada
-            for (World w : Bukkit.getServer().getWorlds()) {
+            // Para todos los mundos, asegurarse de que Minecraft no afecta al ciclo día-noche y establecer la misma hora que en el servidor
+            for (World w : getServer().getWorlds()) {
                 w.setGameRuleValue("doDaylightCycle", "false");
                 w.setTime(ticks);
             }
@@ -107,17 +141,20 @@ public class TiempoReal extends JavaPlugin implements Listener {
     }
     
     /**
-     * Muestra la hora en pantalla a un jugador determinado.
-     * @param p El jugador al que mostrar la hora en pantalla.
+     * Añade un jugador a la lista de jugadores a los que mostrar la hora en pantalla.
+     * @param p El jugador a añadir.
      */
-    private static void mostrarHora(Player p) {
-        BARRA_HORA.addPlayer(p);
+    private void mostrarHora(Player p) {
+        if (!JUGADORES_RELOJ.contains(p)) {
+            JUGADORES_RELOJ.add(p);
+        }
     }
     
     /**
-     * Oculta la hora en pantalla a todos los jugadores.
+     * Elimina un jugador de la lista de jugadores a los que mostrar la hora en pantalla.
+     * @param p El jugador a eliminar de la lista.
      */
-    private static void ocultarHora() {
-        BARRA_HORA.removeAll();
+    private void ocultarHora(Player p) {
+        JUGADORES_RELOJ.remove(p);
     }
 }
