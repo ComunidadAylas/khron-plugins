@@ -10,11 +10,11 @@ ${licensePrefix}(at your option) any later version.
 ${licensePrefix?replace(" +$", "", "r")}
 ${licensePrefix}This program is distributed in the hope that it will be useful,
 ${licensePrefix}but WITHOUT ANY WARRANTY; without even the implied warranty of
-${licensePrefix}MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+${licensePrefix}MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 ${licensePrefix}GNU General Public License for more details.
 ${licensePrefix?replace(" +$", "", "r")}
 ${licensePrefix}You should have received a copy of the GNU General Public License
-${licensePrefix}along with this program.  If not, see <http://www.gnu.org/licenses/>.
+${licensePrefix}along with this program. If not, see <http://www.gnu.org/licenses/>.
 <#if licenseLast??>
 ${licenseLast}
 </#if>

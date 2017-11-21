@@ -2,18 +2,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.alextmjugador.khron</groupId>
-    <artifactId>TiempoReal</artifactId>
-    <version>2.0.0-SNAPSHOT</version>
+    <artifactId>GestorBarraAccion</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>TiempoReal</name>
-    <description>Plugin para sincronizar la hora real con la del juego. Añade la visualización de la hora exacta a ítems de relojes.</description>
+    <name>GestorBarraAccion</name>
+    <description>Plugin utilitario, que permite abstraerse a otros plugins de si se muestra texto en la barra de acciones o no. Provee prioridades de mensajes en dicha barra.</description>
     
     <developers>
         <developer>
             <id>AlexTMjugador (AlexBlocks123)</id>
             <name>Alejandro González</name>
-            <organization>SpainTM</organization>
-            <organizationUrl>http://spaintm.foro-activo.com/</organizationUrl>
+            <organization>Aylas</organization>
+            <organizationUrl>http://aylas.foro-activo.com/</organizationUrl>
         </developer>
     </developers>
     
@@ -23,19 +23,19 @@
         <version>1.0.0</version>
     </parent>
     
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+    
     <dependencies>
         <dependency>
-            <groupId>io.github.alextmjugador.khron</groupId>
-            <artifactId>GestorBarraAccion</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <groupId>com.github.ConnorLinfoot</groupId>
+            <artifactId>ActionBarAPI</artifactId>
+            <version>30f338881d</version>
             <scope>provided</scope>
-            <!-- Excluir retrocompatibilidad con Bukkit para utilizar métodos de Spigot -->
-            <exclusions>
-                <exclusion>
-                    <groupId>org.bukkit</groupId>
-                    <artifactId>bukkit</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
     </dependencies>
 </project>
