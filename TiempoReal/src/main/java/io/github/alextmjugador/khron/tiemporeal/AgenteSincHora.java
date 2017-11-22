@@ -24,6 +24,7 @@ import static org.bukkit.Bukkit.getServer;
 import static org.bukkit.Bukkit.getWorlds;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
+import org.bukkit.World.Environment;
 import org.bukkit.event.*;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.server.ServerCommandEvent;
@@ -113,8 +114,10 @@ final class AgenteSincHora implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onWorldInit(WorldInitEvent event) {
         World w = event.getWorld();
-        ESTADO_INIC_GAMERULE.putIfAbsent(w, w.getGameRuleValue(GAMERULE).equals("true"));
-        w.setGameRuleValue(GAMERULE, "false");
+        if (w.getEnvironment().equals(Environment.NORMAL)) {
+            ESTADO_INIC_GAMERULE.putIfAbsent(w, w.getGameRuleValue(GAMERULE).equals("true"));
+            w.setGameRuleValue(GAMERULE, "false");
+        }
     }
     
     /**
@@ -125,8 +128,10 @@ final class AgenteSincHora implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onWorldUnload(WorldUnloadEvent event) {
         World w = event.getWorld();
-        assert(ESTADO_INIC_GAMERULE.containsKey(w));
-        w.setGameRuleValue(GAMERULE, ESTADO_INIC_GAMERULE.get(w) ? "true" : "false");
+        if (w.getEnvironment().equals(Environment.NORMAL)) {
+            assert(ESTADO_INIC_GAMERULE.containsKey(w));
+            w.setGameRuleValue(GAMERULE, ESTADO_INIC_GAMERULE.get(w) ? "true" : "false");
+        }
     }
     
     /**

@@ -16,9 +16,10 @@
  */
 package io.github.alextmjugador.khron.tiemporeal;
 
-import java.util.LinkedList;
-import java.util.List;
 import io.github.alextmjugador.khron.gestorbarraaccion.PluginGestorBarraAccion;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import static org.bukkit.Bukkit.getPluginManager;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -36,6 +37,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 /**
  * Modela un reloj extendido, que provee de funcionalidades extra al ítem de
@@ -49,13 +51,39 @@ final class RelojExtendido implements Listener {
      */
     private final Plugin plugin;
     /**
-     * Los jugadores que están viendo un reloj en el instante de tiempo presente.
+     * Los jugadores que están viendo un reloj en el instante de tiempo
+     * presente. El byte se utiliza para contar el número de ciclos de
+     * {@link tareaMostrarHora} que han pasado sin actualizar el display al
+     * jugador.
      */
-    private final List<Player> JUGADORES_RELOJ;
+    private final Map<Player,Byte> JUGADORES_RELOJ;
+    /**
+     * Tarea que se encarga de mostrar el display de la hora a los jugadores interesados.
+     */
+    private BukkitTask tareaMostrarHora = null;
     /**
      * El agente de sincronización de hora usado por este plugin.
      */
     private final AgenteSincHora ash;
+    /**
+     * El número de ticks que han de pasar entre ejecuciones consecutivas de la
+     * tarea que se encarga de mostrar el display de la hora a los jugadores
+     * interesados.
+     */
+    private static final int TICKS_TAREA_MOSTRAR_HORA = 1 * 20;
+    /**
+     * El número de ciclos (ejecuciones) de la tarea de mostrar el display de la
+     * hora que han de pasar para que jugadores que dejen de empuñar un reloj ya
+     * no vean en pantalla su display asociado.
+     */
+    private static final byte CICLOS_TAREA_DISPLAY = 4;
+    /**
+     * El tiempo mínimo que permanecerá un display de la hora en la pantalla de
+     * un jugador, independientemente de cuándo se lo quite de la mano. Se
+     * calcula automáticamente a partir de atributos anteriores, así que no se
+     * debe de editar manualmente.
+     */
+    private static final int TIEMPO_DISPLAY = 50 * TICKS_TAREA_MOSTRAR_HORA * CICLOS_TAREA_DISPLAY;
 
     /**
      * Crea un nuevo reloj extendido.
@@ -69,17 +97,16 @@ final class RelojExtendido implements Listener {
             throw new IllegalArgumentException("Se ha intentado crear un reloj extendido asociado a un plugin o a un agente de sincronización de hora nulo");
         }
         this.plugin = plugin;
-        this.JUGADORES_RELOJ = new LinkedList<>();
+        this.JUGADORES_RELOJ = new HashMap<>();
         this.ash = ash;
         inicializar();
     }
 
     /**
-     * Registra los eventos manejados por esta clase con el plugin, y crea tareas periódicas.
+     * Registra los eventos manejados por esta clase con el plugin.
      */
     private void inicializar() {
         getPluginManager().registerEvents(this, plugin);
-        new MostrarHora().runTaskTimer(plugin, 0, (long) 1 * 20);
     }
 
     /**
@@ -206,9 +233,12 @@ final class RelojExtendido implements Listener {
      */
     private void mostrarDisplayHora(Player p) {
         synchronized (JUGADORES_RELOJ) {
-            if (!JUGADORES_RELOJ.contains(p)) {
-                JUGADORES_RELOJ.add(p);
+            // Si somos el primer jugador en ver la hora, poner tarea en marcha
+            if (JUGADORES_RELOJ.isEmpty()) {
+                tareaMostrarHora = new MostrarHora().runTaskTimer(plugin, 0, TICKS_TAREA_MOSTRAR_HORA);
             }
+            
+            JUGADORES_RELOJ.putIfAbsent(p, (byte) 0);
         }
     }
 
@@ -221,6 +251,12 @@ final class RelojExtendido implements Listener {
     private void ocultarDisplayHora(Player p) {
         synchronized (JUGADORES_RELOJ) {
             JUGADORES_RELOJ.remove(p);
+            
+            // Si somos el último jugador en ver el reloj, parar la tarea
+            if (tareaMostrarHora != null && JUGADORES_RELOJ.isEmpty()) {
+                tareaMostrarHora.cancel();
+                tareaMostrarHora = null;
+            }
         }
     }
     
@@ -274,18 +310,23 @@ final class RelojExtendido implements Listener {
         @Override
         public void run() {
             synchronized (JUGADORES_RELOJ) {
-                if (!JUGADORES_RELOJ.isEmpty() && ash.getHora() >= 0 && ash.getMinuto() >= 0) {
+                if (ash.getHora() >= 0 && ash.getMinuto() >= 0) {
                     String hora = new StringBuilder().append(String.format("%02d", ash.getHora()))
                             .append(":")
                             .append(String.format("%02d", ash.getMinuto()))
                             .toString();
-                    
+
                     StringBuilder texto = new StringBuilder();
                     texto.append("§bEl reloj marca las §l");
                     texto.append(hora);
-                    
-                    for (Player p : JUGADORES_RELOJ) {
-                        PluginGestorBarraAccion.mostrarMensaje(p, texto.toString(), 3000, (byte) -10);
+
+                    for (Entry<Player,Byte> entrada : JUGADORES_RELOJ.entrySet()) {
+                        if (entrada.getValue() == 0) {
+                            // Si es 0, acaba de coger el reloj o han pasado los ciclos mínimos para volverle a mostrar el display
+                            PluginGestorBarraAccion.mostrarMensaje(entrada.getKey(), texto.toString(), TIEMPO_DISPLAY, (byte) -10);
+                        }
+                        // Incrementar el contador de ciclos
+                        entrada.setValue((byte) ((entrada.getValue() + 1) % CICLOS_TAREA_DISPLAY));
                     }
                 }
             }
