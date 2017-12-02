@@ -331,7 +331,7 @@ final class RelojExtendido implements Listener {
                                 .append(":")
                                 .append(String.format("%02d", m))
                                 .toString();
-                        String texto = textoHora.replaceFirst(Configuracion.REGEX_CLAVE_TEXTO_HORA, enOverworld ? hora : ChatColor.COLOR_CHAR + ChatColor.MAGIC.getChar() + hora);
+                        String texto = textoHora.replaceAll(Configuracion.REGEX_CLAVE_TEXTO_HORA, enOverworld ? hora : ChatColor.COLOR_CHAR + ChatColor.MAGIC.getChar() + hora);
 
                         PluginGestorBarraAccion.borrarMensajes(plugin, p);
                         PluginGestorBarraAccion.mostrarMensaje(plugin, p, texto, TIEMPO_DISPLAY, (byte) -10);
