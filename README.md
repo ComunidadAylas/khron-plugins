@@ -1,4 +1,4 @@
-# mc-khron-plugins ![Estado de compilación](https://travis-ci.org/AlexTMjugador/mc-khron-plugins.svg?branch=master)
+# mc-khron-plugins [![Estado de compilación](https://travis-ci.org/AlexTMjugador/mc-khron-plugins.svg?branch=master)](https://travis-ci.org/AlexTMjugador/mc-khron-plugins/builds)
 Plugins de Spigot para el servidor de Proyecto Khron en Minecraft.
 
 ### Documentación
