@@ -161,18 +161,11 @@ final class Configuracion {
      * plugin válida que recargar.
      */
     public static void recargar() throws IllegalArgumentException {
-        ParametroConfiguracion<?>[] antiguosParametros;
         if (plugin != null) {
-            antiguosParametros = Arrays.copyOf(PARAMETROS, PARAMETROS.length);
-            
             try {
                 plugin.reloadConfig();
                 inicializar(plugin);
             } catch (IllegalArgumentException exc) {
-                // Restaurar parámetros guardados previamente para asegurarse de que el plugin queda en un estado consistente
-                for (int i = 0; i < PARAMETROS.length; ++i) {
-                    PARAMETROS[i] = antiguosParametros[i];
-                }
                 throw exc;
             }
         }
