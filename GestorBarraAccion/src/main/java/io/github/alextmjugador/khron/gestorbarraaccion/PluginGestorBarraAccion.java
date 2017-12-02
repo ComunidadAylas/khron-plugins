@@ -26,6 +26,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -44,19 +45,20 @@ public final class PluginGestorBarraAccion extends JavaPlugin implements Listene
     /**
      * La instancia en ejecución del plugin.
      */
-    private static PluginGestorBarraAccion plugin = null;
+    private static PluginGestorBarraAccion estePlugin = null;
 
     /**
-     * Inicializa el atributo estático plugin.
+     * Inicializa el atributo estático {@link estePlugin}.
      */
     @Override
     public void onEnable() {
-        PluginGestorBarraAccion.plugin = this;
+        PluginGestorBarraAccion.estePlugin = this;
     }
     
     /**
      * Muestra un mensaje en la barra de acciones de un jugador.
      *
+     * @param plugin El plugin al nombre del cual se creará el mensaje.
      * @param p El jugador al que mostrarle el mensaje.
      * @param msg El mensaje a mostrar.
      * @param duracion La duración del mensaje, en milisegundos.
@@ -65,11 +67,11 @@ public final class PluginGestorBarraAccion extends JavaPlugin implements Listene
      * @return Verdadero si el mensaje se ha podido mostrar, falso en caso
      * contrario.
      */
-    public static boolean mostrarMensaje(Player p, String msg, int duracion, byte prioridad) {
+    public static boolean mostrarMensaje(Plugin plugin, Player p, String msg, int duracion, byte prioridad) {
         boolean toret = false;
         
         if (msg != null) {
-            toret = mostrarArray(p, new Mensaje[]{ new Mensaje(msg, duracion, prioridad) });
+            toret = mostrarArray(p, new Mensaje[]{ new Mensaje(msg, duracion, prioridad, plugin) });
         }
         
         return toret;
@@ -79,26 +81,28 @@ public final class PluginGestorBarraAccion extends JavaPlugin implements Listene
      * Muestra un mensaje en la barra de acciones de un jugador, con la
      * prioridad predeterminada.
      *
+     * @param plugin El plugin al nombre del cual se creará el mensaje.
      * @param p El jugador al que mostrarle el mensaje.
      * @param msg El mensaje a mostrar.
      * @param duracion La duración del mensaje, en milisegundos.
      * @return Verdadero si el mensaje se ha podido mostrar, falso en caso
      * contrario.
      */
-    public static boolean mostrarMensaje(Player p, String msg, int duracion) {
-        return mostrarMensaje(p, msg, duracion, Mensaje.PRIORIDAD_PREDET);
+    public static boolean mostrarMensaje(Plugin plugin, Player p, String msg, int duracion) {
+        return mostrarMensaje(plugin, p, msg, duracion, Mensaje.PRIORIDAD_PREDET);
     }
     
     /**
      * Muestra uno o varios mensajes en la barra de acciones de un jugador, con
      * duración y prioridades predeterminadas.
      *
+     * @param plugin El plugin al nombre del cual se creará el mensaje.
      * @param p El jugador al que mostrarle el/los mensaje/s.
      * @param msg Los mensajes a mostrar.
      * @return Verdadero si el/los mensaje/s se ha/n podido mostrar, falso en
      * caso contrario.
      */
-    public static boolean mostrarMensaje(Player p, String... msg) {
+    public static boolean mostrarMensaje(Plugin plugin, Player p, String... msg) {
         boolean toret = false;
         Mensaje[] mensajes;
         
@@ -106,7 +110,7 @@ public final class PluginGestorBarraAccion extends JavaPlugin implements Listene
             // Crear objetos Mensaje a partir de las cadenas de texto
             mensajes = new Mensaje[msg.length];
             for (int i = 0; i < msg.length; ++i) {
-                mensajes[i] = new Mensaje(msg[i]);
+                mensajes[i] = new Mensaje(msg[i], plugin);
             }
 
             toret = mostrarArray(p, mensajes);
@@ -140,6 +144,30 @@ public final class PluginGestorBarraAccion extends JavaPlugin implements Listene
     }
     
     /**
+     * Borra los mensajes pendientes de mostrarle a un jugador en la barra de
+     * acciones creados por un determinado plugin. El jugador seguirá viendo el
+     * mensaje actual hasta que su duración expire. Para forzar una limpieza de
+     * la barra de acciones, llamar a este método y enviar un mensaje en blanco,
+     * o bien enviar un mensaje en blanco con máxima prioridad (asumiendo que no
+     * hay otros de igual prioridad en la pila).
+     *
+     * @param plugin El plugin al nombre del cual se han creado los mensajes.
+     * @param p El jugador al que borrarle los mensajes pendientes.
+     * @return Verdadero si se han borrado mensajes pendientes del jugador,
+     * falso en caso contrario.
+     */
+    public static boolean borrarMensajes(Plugin plugin, Player p) {
+        boolean toret = MENSAJES_PENDIENTES.containsKey(p);
+        
+        if (toret) {
+            PilaMensajes pila = MENSAJES_PENDIENTES.get(p);
+            toret = pila.empty(plugin) > 0;
+        }
+        
+        return toret;
+    }
+    
+    /**
      * Inserta los mensajes contenidos en el array en la pila de mensajes pendientes del jugador especificado.
      * @param p El jugador al que insertarle los mensajes en la pila.
      * @param arr El array de mensajes a insertar.
@@ -149,7 +177,7 @@ public final class PluginGestorBarraAccion extends JavaPlugin implements Listene
         boolean toret = false;
         PilaMensajes pila;
         
-        if (plugin != null) {
+        if (estePlugin != null) {
             pila = MENSAJES_PENDIENTES.get(p);
             if (pila == null) {
                 pila = new PilaMensajes();
@@ -159,7 +187,7 @@ public final class PluginGestorBarraAccion extends JavaPlugin implements Listene
             try {
                 pila.push(Arrays.asList(arr));
                 if (!pila.mostrando()) {
-                    pila.mostrar(p, plugin);
+                    pila.mostrar(p, estePlugin);
                 }
                 toret = true;
             } catch (IllegalArgumentException | EmptyStackException exc) {

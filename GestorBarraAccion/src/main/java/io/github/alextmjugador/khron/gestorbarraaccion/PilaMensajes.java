@@ -17,6 +17,7 @@
 package io.github.alextmjugador.khron.gestorbarraaccion;
 
 import java.util.EmptyStackException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
 import org.bukkit.entity.Player;
@@ -110,6 +111,33 @@ final class PilaMensajes {
     }
     
     /**
+     * Vacía la pila de mensajes generados por un determinado plugin. No afecta
+     * a la visualización de los mensajes que puedan quedar.
+     *
+     * @param plugin El plugin al nombre del cual se han creado los mensajes.
+     * @return El número de mensajes generados por el plugin especificado que han sido borrados de la pila.
+     */
+    public int empty(Plugin plugin) {
+        int toret = 0;
+        Iterator<Mensaje> iter;
+        
+        if (plugin != null) {
+            synchronized (pila) {
+                iter = pila.iterator();
+                while (iter.hasNext()) { // (Complejidad lineal)
+                    Mensaje actual = iter.next();
+                    if (actual.getPlugin().equals(plugin)) {
+                        iter.remove();
+                        ++toret;
+                    }
+                }
+            }
+        }
+        
+        return toret;
+    }
+    
+    /**
      * Muestra todos los mensajes en esta pila. Si ya se están mostrando,
      * sobreescribe la tarea interna que se encarga de ello. Esto muestra el
      * siguiente mensaje antes de tiempo si el jugador especificado es el mismo
@@ -147,6 +175,7 @@ final class PilaMensajes {
     
     /**
      * Comprueba si se está mostrando la pila o no.
+     *
      * @return Verdadero si la pila se está mostrando a un jugador, falso si no.
      */
     public boolean mostrando() {
@@ -154,7 +183,9 @@ final class PilaMensajes {
     }
 
     /**
-     * Para cualquier tarea para visualizar futuros mensajes de esta pila. El jugador seguirá viendo los mensajes que le hayan sido enviados, hasta que su duración expire.
+     * Para cualquier tarea para visualizar futuros mensajes de esta pila. El
+     * jugador seguirá viendo los mensajes que le hayan sido enviados, hasta que
+     * su duración expire.
      */
     public void parar() {
         if (mostrando()) {
@@ -204,7 +235,7 @@ final class PilaMensajes {
                         msg = pila.pop();
                         // Se lo muestra al jugador y programa una tarea para el siguiente, si hay más
                         msg.mostrar(jugador);
-                        tareaMostrarSig = new MostrarSig(jugador, plugin).runTaskLater(plugin, (int) Math.ceil(msg.getDuracion() / 50)); // Dividir entre 50 = / 1000 y * 20
+                        tareaMostrarSig = new MostrarSig(jugador, plugin).runTaskLater(plugin, (int) msg.getDuracion() / 50); // Dividir entre 50 = / 1000 y * 20
                     }
                 }
             } catch (IllegalArgumentException exc) {

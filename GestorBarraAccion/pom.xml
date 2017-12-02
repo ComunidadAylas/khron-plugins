@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.alextmjugador.khron</groupId>
     <artifactId>GestorBarraAccion</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>2.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>GestorBarraAccion</name>
     <description>Plugin utilitario, que permite abstraerse a otros plugins de si se muestra texto en la barra de acciones o no. Provee prioridades de mensajes en dicha barra.</description>
@@ -20,7 +20,7 @@
     <parent>
         <artifactId>Minecraft-Khron-Plugins</artifactId>
         <groupId>io.github.alextmjugador.khron</groupId>
-        <version>1.0.0</version>
+        <version>1.1.0</version>
     </parent>
     
     <repositories>

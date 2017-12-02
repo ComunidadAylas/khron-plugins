@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.alextmjugador.khron</groupId>
     <artifactId>Minecraft-Khron-Plugins</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <packaging>pom</packaging>
     <name>Minecraft Khron: plugins</name>
     <description>Proyecto que contiene todos los plugins desarrollados por y para el servidor de Minecraft Khron.</description>
@@ -58,6 +58,27 @@
                             <url>https://github.com/AlexTMjugador/mc-khron-plugins</url>
                         </manifestEntries>
                     </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.0.0-M1</version>
+                <configuration>
+                    <detectLinks>true</detectLinks>
+                    <footer>Comunidad Aylas</footer>
+                    <show>private</show>
+                    <debug>false</debug>
+                    <reportOutputDirectory>${project.basedir}</reportOutputDirectory>
+                    <destDir>docs</destDir>
+                    <tags>
+                        <!-- Etiqueta para indicar cosas pendientes de codificar -->
+                        <tag>
+                            <name>todo.</name>
+                            <placement>a</placement>
+                            <head>Pendiente:</head>
+                        </tag>
+                    </tags>
                 </configuration>
             </plugin>
         </plugins>

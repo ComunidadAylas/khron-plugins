@@ -16,21 +16,25 @@
  */
 package io.github.alextmjugador.khron.tiemporeal;
 
+import io.github.alextmjugador.khron.tiemporeal.ParametroConfiguracion.MundosSincronizacion;
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import static org.bukkit.Bukkit.getServer;
-import static org.bukkit.Bukkit.getWorlds;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
-import org.bukkit.World.Environment;
-import org.bukkit.event.*;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.server.ServerCommandEvent;
-import org.bukkit.event.world.*;
+import org.bukkit.event.world.WorldLoadEvent;
+import org.bukkit.event.world.WorldUnloadEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 /**
  * Implementa un agente de sincronización de hora real con la del juego.
@@ -49,9 +53,21 @@ final class AgenteSincHora implements Listener {
     private byte minutoActual = Byte.MIN_VALUE;
     
     /**
-     * El objeto {@link Plugin} asociado a este agente de sincronización de hora.
+     * El objeto {@link Plugin} asociado a este agente de sincronización de
+     * hora.
      */
     private final Plugin plugin;
+    
+    /**
+     * La tarea de sincronización de hora usada por este agente para lograr su
+     * propósito.
+     */
+    private BukkitTask tareaSincHora = null;
+    
+    /**
+     * Guarda una referencia al primer (y único) objeto creado de esta clase.
+     */
+    private static AgenteSincHora ash = null;
     
     /**
      * La gamerule que nos interesa controlar en este plugin: el ciclo
@@ -71,78 +87,140 @@ final class AgenteSincHora implements Listener {
     private static final String COMANDO_GAMERULE = "/gamerule " + GAMERULE;
     
     /**
-     * Contiene el estado inicial de la gamerule {@link GAMERULE} para cada
-     * mundo, antes de que este plugin lo estableciese.
+     * Contiene los mundos en los que está actuando este agente, además del
+     * estado inicial de la gamerule {@link GAMERULE} para cada mundo, antes de
+     * que este plugin lo estableciese.
      */
-    private final Map<World, Boolean> ESTADO_INIC_GAMERULE = new HashMap<>(5);
+    private static final Map<World,Boolean> MUNDOS_Y_GAMERULE = new HashMap<>(5);
+    
+    /**
+     * Los ticks que transcurrirán entre dos sincronizaciones consecutivas de la
+     * hora del servidor con las horas de los mundos.
+     */
+    private static final int TICKS_SINC_HORA = 20;
     
     /**
      * Crea un nuevo agente de sincronización de hora real con la del juego.
      *
      * @param plugin El plugin sobre el que se ejecutarán las acciones de este
      * agente.
+     * @throws IllegalArgumentException Si el plugin especificado es nulo.
+     * @throws UnsupportedOperationException Si se intenta crear una segunda instancia de esta clase.
      */
-    public AgenteSincHora(Plugin plugin) throws IllegalArgumentException {
+    public AgenteSincHora(Plugin plugin) throws IllegalArgumentException, UnsupportedOperationException {
         if (plugin == null) {
             throw new IllegalArgumentException("Se ha intentado crear un agente de sincronización de hora asociado a un plugin nulo");
         }
+        
+        if (ash != null) {
+            throw new UnsupportedOperationException("Se ha intentado crear un segundo agente de sincronización de hora");
+        }
+        
         this.plugin = plugin;
         inicializar();
     }
     
     /**
-     * Registra los eventos manejados por este agente con el plugin, y crea tareas periódicas.
+     * Registra los eventos manejados por este agente con el plugin, y crea
+     * tareas periódicas.
      */
     private void inicializar() {
-        // Tarea para sincronizar el tiempo cada segundo
-        new SincronizarTiempo().runTaskTimer(plugin, 0, 20);
+        // Actualizar referencia al agente creado
+        ash = this;
         
         // Registrar eventos que nos conciernen
         getServer().getPluginManager().registerEvents(this, plugin);
+
+        // Inicializar campos de los mundos pertinentes
+        @SuppressWarnings("unchecked")
+        Set<World> mundosSinc = (Set<World>) Configuracion.get(ParametroConfiguracion.MundosSincronizacion.class).getValor();
         
-        // Inicializar campos de los mundos ya cargados
-        for (World w : getServer().getWorlds()) {
-            onWorldInit(new WorldInitEvent(w));
+        for (World w : mundosSinc) {
+            onWorldLoad(new WorldLoadEvent(w));
         }
     }
     
     /**
-     * Detiene el ciclo natural día-noche de Minecraft de un mundo que se carga.
+     * Detiene el ciclo natural día-noche de Minecraft de un mundo que se carga,
+     * si está en el conjunto de mundos en los que este plugin sincronizará la
+     * hora.
      *
-     * @param event El evento de inicialización del mundo.
+     * @param event El evento de carga del mundo.
      */
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-    public void onWorldInit(WorldInitEvent event) {
+    public void onWorldLoad(WorldLoadEvent event) {
         World w = event.getWorld();
-        if (w.getEnvironment().equals(Environment.NORMAL)) {
-            ESTADO_INIC_GAMERULE.putIfAbsent(w, w.getGameRuleValue(GAMERULE).equals("true"));
+        
+        @SuppressWarnings("unchecked")
+        Set<World> mundosSinc = (Set<World>) Configuracion.get(ParametroConfiguracion.MundosSincronizacion.class).getValor();
+        
+        if (mundosSinc.contains(w)) {
+            MUNDOS_Y_GAMERULE.putIfAbsent(w, w.getGameRuleValue(GAMERULE).equals("true"));
             w.setGameRuleValue(GAMERULE, "false");
+            
+            if (MUNDOS_Y_GAMERULE.size() == 1 && tareaSincHora == null) {
+                tareaSincHora = new SincronizarTiempo().runTaskTimer(plugin, 0, TICKS_SINC_HORA);
+            }
         }
     }
     
     /**
-     * Restablece el ciclo natural día-noche de Minecraft de un mundo que se descarga.
-     * 
+     * Restablece el ciclo natural día-noche de Minecraft de un mundo que se
+     * descarga, si es necesario.
+     *
      * @param event El evento de descarga del mundo.
      */
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onWorldUnload(WorldUnloadEvent event) {
         World w = event.getWorld();
-        if (w.getEnvironment().equals(Environment.NORMAL)) {
-            assert(ESTADO_INIC_GAMERULE.containsKey(w));
-            w.setGameRuleValue(GAMERULE, ESTADO_INIC_GAMERULE.get(w) ? "true" : "false");
+        
+        if (MUNDOS_Y_GAMERULE.containsKey(w)) {
+            w.setGameRuleValue(GAMERULE, MUNDOS_Y_GAMERULE.get(w) ? "true" : "false");
+            MUNDOS_Y_GAMERULE.remove(w);
+            
+            if (MUNDOS_Y_GAMERULE.isEmpty() && tareaSincHora != null) {
+                tareaSincHora.cancel();
+                tareaSincHora = null;
+            }
         }
     }
     
     /**
-     * Cancela el comando de cambiar el ciclo día-noche puesto por un jugador.
+     * Se asegura de que la gamerule de ciclo día-noche se restablece
+     * consistentemente en mundos que ya no se controlen, y coloca nuevos mundos
+     * en el mapa {@link MUNDOS_Y_GAMERULE}.
+     */
+    public static void onConfigChange() {
+        // Restaurar propiedades simulando descarga de los mundos
+        for (World w : MUNDOS_Y_GAMERULE.keySet()) {
+            ash.onWorldUnload(new WorldUnloadEvent(w));
+        }
+        
+        @SuppressWarnings("unchecked")
+        Set<World> mundosSinc = (Set<World>) Configuracion.get(ParametroConfiguracion.MundosSincronizacion.class).getValor();
+        
+        // Recargar nuevos mundos a manejar
+        MUNDOS_Y_GAMERULE.clear();
+        for (World w : mundosSinc) {
+            ash.onWorldLoad(new WorldLoadEvent(w));
+        }
+    }
+    
+    /**
+     * Cancela el comando de cambiar el ciclo día-noche puesto por un jugador en
+     * un mundo controlado por este agente.
      *
      * @param event El evento de comando puesto por un jugador.
      */
     @EventHandler(ignoreCancelled = true)
     public void onPlayerCommand(PlayerCommandPreprocessEvent event) {
-        if (event.getMessage().startsWith(COMANDO_GAMERULE)) {
-            event.getPlayer().sendRawMessage(ChatColor.RED + ERROR_GAMERULE);
+        Player p = event.getPlayer();
+        
+        @SuppressWarnings("unchecked")
+        Set<World> mundosSinc = (Set<World>) Configuracion.get(ParametroConfiguracion.MundosSincronizacion.class).getValor();
+        
+        if (event.getMessage().startsWith(COMANDO_GAMERULE) && mundosSinc.contains(p.getWorld())) {
+            p.sendRawMessage(ChatColor.RED + ERROR_GAMERULE);
             event.setCancelled(true);
         }
     }
@@ -161,37 +239,72 @@ final class AgenteSincHora implements Listener {
     }
 
     /**
-     * Obtiene la hora actual del juego, que coincide, como máximo con un pequeño retraso, con la real.
-     * 
-     * @return La hora actual del juego. Puede ser negativa si la hora aún no fue sincronizada.
+     * Obtiene la hora actual de un mundo, que coincide, como máximo con un
+     * pequeño retraso, con la real, si este agente sincroniza la hora en él.
+     *
+     * @param w El mundo del que obtener la hora.
+     * @return La hora actual del mundo. Puede ser negativa si la hora aún no
+     * fue sincronizada cuando debería.
      */
-    public byte getHora() {
-        return horaActual;
+    public byte getHora(World w) {
+        byte toret;
+        
+        if (MUNDOS_Y_GAMERULE.containsKey(w)) {
+            toret = horaActual;
+        } else {
+            // Convierte ticks del día actual del mundo de Minecraft a hora
+            toret = (byte) ((w.getTime() / 1000 + 6) % 24);
+        }
+        
+        return toret;
     }
 
     /**
-     * Obtiene el minuto de la hora actual del juego, que coincide, como máximo con un pequeño retraso, con el de la real.
-     * 
-     * @return El minuto actual del juego. Puede ser negativo si la hora aún no fue sincronizada.
+     * Obtiene el minuto de la hora actual del juego, que coincide, como máximo
+     * con un pequeño retraso, con el de la real, si este agente sincroniza la
+     * hora en él.
+     *
+     * @param w El mundo del que obtener el minuto.
+     * @return El minuto actual del juego. Puede ser negativo si la hora aún no
+     * fue sincronizada cuando debería.
      */
-    public byte getMinuto() {
-        return minutoActual;
+    public byte getMinuto(World w) {
+        byte toret;
+        
+        if (MUNDOS_Y_GAMERULE.containsKey(w)) {
+            toret = minutoActual;
+        } else {
+            // Convierte ticks del día actual del mundo de Minecraft a minuto de la hora actual
+            toret = (byte) ((60 * (w.getTime() % 1000)) / 1000);
+        }
+        
+        return toret;
     }
     
     /**
-     * Tarea para sincronizar la hora del día de todos los mundos con la del
-     * servidor.
+     * Obtiene la única instancia posible de este agente.
+     *
+     * @return La susodicha instancia.
+     */
+    public static AgenteSincHora getInstancia() {
+        return ash;
+    }
+    
+    /**
+     * Tarea para sincronizar la hora del día de todos los mundos configurados
+     * con la del servidor.
      */
     private class SincronizarTiempo extends BukkitRunnable {
         /**
-         * Sincroniza la hora del día de todos los mundos con la del servidor.
+         * Sincroniza la hora del día de todos los mundos configurados con la
+         * del servidor.
          */
         @Override
         public void run() {
             Calendar horaServidor = Calendar.getInstance();
-            List<World> mundos = getWorlds();
+            Set<World> mundosHora = MUNDOS_Y_GAMERULE.keySet();
             
-            if (!mundos.isEmpty()) {
+            if (!mundosHora.isEmpty()) {
                 // Calcular equivalencia hora real-ticks de Minecraft
                 byte h_real = (byte) horaServidor.get(Calendar.HOUR_OF_DAY);
                 byte h = (byte) ((h_real - 6 + 24) % 24);   // El día de Minecraft empieza a las 6 AM
@@ -200,7 +313,7 @@ final class AgenteSincHora implements Listener {
                 short ms = (short) horaServidor.get(Calendar.MILLISECOND);
                 long ticks = (h * 1000) + ((m * 50) / 3) + ((s * 5) / 18) + (ms / 3600);    // Se obtiene tras simplificar h * 1000 + (m / 60) * 1000 + (s / 3600) * 1000) + (ms / 1000 / 3600) * 1000
 
-                for (World w : mundos) {
+                for (World w : mundosHora) {
                     w.setTime(ticks);
                 }
 

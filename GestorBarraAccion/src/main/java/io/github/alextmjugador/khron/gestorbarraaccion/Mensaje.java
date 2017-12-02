@@ -18,6 +18,7 @@ package io.github.alextmjugador.khron.gestorbarraaccion;
 
 import com.connorlinfoot.actionbarapi.ActionBarAPI;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 
 /**
  * Modela un mensaje a mostrar en la barra de acción de un jugador.
@@ -38,6 +39,10 @@ final class Mensaje implements Comparable {
      */
     private final byte prioridad;
     /**
+     * El plugin al nombre del cual se ha creado este mensaje.
+     */
+    private final Plugin plugin;
+    /**
      * La duración predeterminada del mensaje, si se omite, en milisegundos.
      */
     public static final int DURACION_PREDET = 3000;
@@ -55,15 +60,20 @@ final class Mensaje implements Comparable {
      * @param prioridad La prioridad de este mensaje. Un valor numérico mayor
      * significa mayor prioridad. Se mostrarán primero los mensajes de mayor
      * prioridad.
-     * @throws IllegalArgumentException Si la duración es menor o igual a cero.
+     * @param plugin El plugin responsable de la emisión de este mensaje.
+     * @throws IllegalArgumentException Si la duración es menor que 100, o el plugin es nulo o está detenido.
      */
-    public Mensaje(String mensaje, int duracion, byte prioridad) throws IllegalArgumentException {
-        if (duracion < 1) {
-            throw new IllegalArgumentException("La duración es menor o igual a 0");
+    public Mensaje(String mensaje, int duracion, byte prioridad, Plugin plugin) throws IllegalArgumentException {
+        if (duracion < 100) {
+            throw new IllegalArgumentException("La duración es menor a 100 ms");
+        }
+        if (plugin == null || !plugin.isEnabled()) {
+            throw new IllegalArgumentException("El plugin es nulo o está desactivado");
         }
         this.mensaje = mensaje;
         this.duracion = duracion;
         this.prioridad = prioridad;
+        this.plugin = plugin;
     }
 
     /**
@@ -73,10 +83,11 @@ final class Mensaje implements Comparable {
      * @param mensaje El mensaje a mostrar. Puede contener caracteres de
      * formato, como §.
      * @param duracion La duración de ese mensaje, en milisegundos.
-     * @throws IllegalArgumentException Si la duración es menor que cero.
+     * @param plugin El plugin responsable de la emisión de este mensaje.
+     * @throws IllegalArgumentException Si la duración es menor que 100, o el plugin es nulo o está detenido.
      */
-    public Mensaje(String mensaje, int duracion) throws IllegalArgumentException {
-        this(mensaje, duracion, PRIORIDAD_PREDET);
+    public Mensaje(String mensaje, int duracion, Plugin plugin) throws IllegalArgumentException {
+        this(mensaje, duracion, PRIORIDAD_PREDET, plugin);
     }
 
     /**
@@ -85,9 +96,11 @@ final class Mensaje implements Comparable {
      *
      * @param mensaje El mensaje a mostrar. Puede contener caracteres de
      * formato, como §.
+     * @param plugin El plugin responsable de la emisión de este mensaje.
+     * @throws IllegalArgumentException Si el plugin es nulo o está detenido.
      */
-    public Mensaje(String mensaje) {
-        this(mensaje, DURACION_PREDET, PRIORIDAD_PREDET);
+    public Mensaje(String mensaje, Plugin plugin) throws IllegalArgumentException {
+        this(mensaje, DURACION_PREDET, PRIORIDAD_PREDET, plugin);
     }
 
     /**
@@ -120,6 +133,14 @@ final class Mensaje implements Comparable {
     }
 
     /**
+     * Obtiene el plugin al nombre del cual se ha creado este mensaje.
+     * @return El plugin al nombre del cual se ha creado este mensaje.
+     */
+    public Plugin getPlugin() {
+        return plugin;
+    }
+
+    /**
      * Muestra este mensaje a un determinado jugador.
      *
      * @param p El mensaje a mostrar.
@@ -132,7 +153,7 @@ final class Mensaje implements Comparable {
         }
         // Duración dividida entre 50 para pasar a ticks
         // Se le resta uno debido a que la API envía un mensaje en blanco un tick después de que expire la duración, lo cual da problemas visuales al jugador
-        ActionBarAPI.sendActionBar(p, getMensaje(), Math.max((int) Math.ceil(getDuracion() / 50) - 1, 1));
+        ActionBarAPI.sendActionBar(p, getMensaje(), (int) Math.ceil(getDuracion() / 50) - 1);
     }
 
     /**

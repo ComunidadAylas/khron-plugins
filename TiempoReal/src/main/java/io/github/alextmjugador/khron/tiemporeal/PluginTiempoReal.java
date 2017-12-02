@@ -16,6 +16,8 @@
  */
 package io.github.alextmjugador.khron.tiemporeal;
 
+import java.util.Set;
+import static org.bukkit.Bukkit.getPluginManager;
 import org.bukkit.World;
 import org.bukkit.event.world.WorldUnloadEvent;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -28,18 +30,39 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public final class PluginTiempoReal extends JavaPlugin {
     /**
-     * Contiene el agente de sincronización de hora usado por el plugin.
+     * Indica si el plugin fue inicializado con éxito o no.
      */
-    private static AgenteSincHora agenteHora;
+    private static boolean inicializado = false;
     
     /**
      * Crea los objetos y eventos necesarios para sincronizar el tiempo y
      * extender la funcionalidad de relojes.
      */
     @Override
+    @SuppressWarnings("ResultOfObjectAllocationIgnored")
     public void onEnable() {
-        PluginTiempoReal.agenteHora = new AgenteSincHora(this);
-        new RelojExtendido(this, PluginTiempoReal.agenteHora);
+        try {
+            // Cargar configuraciones
+            this.saveDefaultConfig();
+            Configuracion.inicializar(this);
+            
+            // Añadir comandos del plugin
+            LogicaComandos lc = new LogicaComandos();
+            for (String comando : this.getDescription().getCommands().keySet()) {
+                getCommand(comando).setExecutor(lc);
+                getCommand(comando).setTabCompleter(lc);
+            }
+            
+            // Comenzar acciones del plugin
+            new AgenteSincHora(this);
+            new RelojExtendido(this);
+            
+            inicializado = true;
+        } catch (IllegalArgumentException exc) {
+            getServer().getLogger().severe("[TiempoReal] La configuración del plugin es inválida. Se detiene su ejecución. Detalles:");
+            getServer().getLogger().severe(exc.getMessage());
+            getPluginManager().disablePlugin(this);
+        }
     }
 
     /**
@@ -47,8 +70,15 @@ public final class PluginTiempoReal extends JavaPlugin {
      */
     @Override
     public void onDisable() {
-        for (World w : getServer().getWorlds()) {
-            agenteHora.onWorldUnload(new WorldUnloadEvent(w));
+        if (inicializado) {
+            AgenteSincHora ash = AgenteSincHora.getInstancia();
+            
+            @SuppressWarnings("unchecked")
+            Set<World> mundosSinc = (Set<World>) Configuracion.get(ParametroConfiguracion.MundosSincronizacion.class).getValor();
+            
+            for (World w : mundosSinc) {
+                ash.onWorldUnload(new WorldUnloadEvent(w));
+            }
         }
     }
 }
