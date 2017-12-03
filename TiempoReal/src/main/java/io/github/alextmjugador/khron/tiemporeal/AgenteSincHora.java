@@ -183,6 +183,10 @@ final class AgenteSincHora implements Listener {
      * Se asegura de que la gamerule de ciclo día-noche se restablece
      * consistentemente en mundos que ya no se controlen, y coloca nuevos mundos
      * en el mapa {@link MUNDOS_Y_GAMERULE}.
+     *
+     * @param nuevoValor El nuevo valor que va a tomar la configuración, cuyo
+     * tipo es determinado por la clase
+     * {@link ParametroConfiguracion.MundosSincronizacion}.
      */
     public static void onConfigChange(Object nuevoValor) {
         try {
