@@ -20,6 +20,7 @@ import io.github.alextmjugador.khron.gestorbarraaccion.PluginGestorBarraAccion;
 import java.util.LinkedList;
 import java.util.List;
 import static org.bukkit.Bukkit.getPluginManager;
+import static org.bukkit.Bukkit.getServer;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -99,9 +100,13 @@ final class RelojExtendido implements Listener {
     }
 
     /**
-     * Registra los eventos manejados por esta clase con el plugin.
+     * Registra los eventos manejados por esta clase con el plugin, y hace que
+     * los jugadores que empuñen un reloj inicialmente vean la hora.
      */
     private void inicializar() {
+        for (Player p : getServer().getOnlinePlayers()) {
+            new ComprobarReloj(p).runTask(plugin);
+        }
         getPluginManager().registerEvents(this, plugin);
     }
 
@@ -114,9 +119,10 @@ final class RelojExtendido implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onPlayerEvent(PlayerItemHeldEvent event) {
         Player p = event.getPlayer();
-        ItemStack stack = p.getInventory().getItem(event.getNewSlot());
+        PlayerInventory pinv = p.getInventory();
+        ItemStack stack = pinv.getItem(event.getNewSlot());
 
-        if (stack != null && stack.getType().equals(Material.WATCH)) {
+        if ((stack != null && stack.getType().equals(Material.WATCH)) || pinv.getItemInOffHand().getType().equals(Material.WATCH)) {
             mostrarDisplayHora(p);
         } else {
             ocultarDisplayHora(p);
@@ -316,22 +322,22 @@ final class RelojExtendido implements Listener {
         public void run() {
             synchronized (JUGADORES_RELOJ) {
                 AgenteSincHora ash = AgenteSincHora.getInstancia();
-                
+
                 @SuppressWarnings("unchecked")
                 String textoHora = (String) Configuracion.get(ParametroConfiguracion.TextoHora.class).getValor();
-                
+
                 for (Player p : JUGADORES_RELOJ) {
                     World w = p.getWorld();
                     byte h = ash.getHora(w);
                     byte m = ash.getMinuto(w);
                     boolean enOverworld = w.getEnvironment().equals(Environment.NORMAL);
-                    
+
                     if (h >= 0 && m >= 0) {
                         String hora = new StringBuilder().append(String.format("%02d", h))
                                 .append(":")
                                 .append(String.format("%02d", m))
                                 .toString();
-                        String texto = textoHora.replaceAll(Configuracion.REGEX_CLAVE_TEXTO_HORA, enOverworld ? hora : ChatColor.COLOR_CHAR + ChatColor.MAGIC.getChar() + hora);
+                        String texto = textoHora.replaceFirst(Configuracion.REGEX_CLAVE_TEXTO_HORA, enOverworld ? hora : ChatColor.MAGIC + hora);
 
                         PluginGestorBarraAccion.borrarMensajes(plugin, p);
                         PluginGestorBarraAccion.mostrarMensaje(plugin, p, texto, TIEMPO_DISPLAY, (byte) -10);

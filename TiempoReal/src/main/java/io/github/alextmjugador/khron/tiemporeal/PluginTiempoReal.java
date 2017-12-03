@@ -72,10 +72,10 @@ public final class PluginTiempoReal extends JavaPlugin {
     public void onDisable() {
         if (inicializado) {
             AgenteSincHora ash = AgenteSincHora.getInstancia();
-            
+
             @SuppressWarnings("unchecked")
             Set<World> mundosSinc = (Set<World>) Configuracion.get(ParametroConfiguracion.MundosSincronizacion.class).getValor();
-            
+
             for (World w : mundosSinc) {
                 ash.onWorldUnload(new WorldUnloadEvent(w));
             }

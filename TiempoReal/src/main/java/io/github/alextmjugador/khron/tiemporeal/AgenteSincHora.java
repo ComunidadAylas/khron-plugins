@@ -16,7 +16,6 @@
  */
 package io.github.alextmjugador.khron.tiemporeal;
 
-import io.github.alextmjugador.khron.tiemporeal.ParametroConfiguracion.MundosSincronizacion;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -127,14 +126,14 @@ final class AgenteSincHora implements Listener {
     private void inicializar() {
         // Actualizar referencia al agente creado
         ash = this;
-        
+
         // Registrar eventos que nos conciernen
         getServer().getPluginManager().registerEvents(this, plugin);
 
         // Inicializar campos de los mundos pertinentes
         @SuppressWarnings("unchecked")
         Set<World> mundosSinc = (Set<World>) Configuracion.get(ParametroConfiguracion.MundosSincronizacion.class).getValor();
-        
+
         for (World w : mundosSinc) {
             onWorldLoad(new WorldLoadEvent(w));
         }
@@ -150,17 +149,12 @@ final class AgenteSincHora implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onWorldLoad(WorldLoadEvent event) {
         World w = event.getWorld();
-        
+
         @SuppressWarnings("unchecked")
         Set<World> mundosSinc = (Set<World>) Configuracion.get(ParametroConfiguracion.MundosSincronizacion.class).getValor();
-        
+
         if (mundosSinc.contains(w)) {
-            MUNDOS_Y_GAMERULE.putIfAbsent(w, w.getGameRuleValue(GAMERULE).equals("true"));
-            w.setGameRuleValue(GAMERULE, "false");
-            
-            if (MUNDOS_Y_GAMERULE.size() == 1 && tareaSincHora == null) {
-                tareaSincHora = new SincronizarTiempo().runTaskTimer(plugin, 0, TICKS_SINC_HORA);
-            }
+            sincronizarHoraMundo(w);
         }
     }
     
@@ -190,19 +184,22 @@ final class AgenteSincHora implements Listener {
      * consistentemente en mundos que ya no se controlen, y coloca nuevos mundos
      * en el mapa {@link MUNDOS_Y_GAMERULE}.
      */
-    public static void onConfigChange() {
-        // Restaurar propiedades simulando descarga de los mundos
-        for (World w : MUNDOS_Y_GAMERULE.keySet()) {
-            ash.onWorldUnload(new WorldUnloadEvent(w));
-        }
-        
-        @SuppressWarnings("unchecked")
-        Set<World> mundosSinc = (Set<World>) Configuracion.get(ParametroConfiguracion.MundosSincronizacion.class).getValor();
-        
-        // Recargar nuevos mundos a manejar
-        MUNDOS_Y_GAMERULE.clear();
-        for (World w : mundosSinc) {
-            ash.onWorldLoad(new WorldLoadEvent(w));
+    public static void onConfigChange(Object nuevoValor) {
+        try {
+            @SuppressWarnings("unchecked")
+            Set<World> mundosSinc = (Set<World>) nuevoValor;
+
+            // Restaurar propiedades simulando descarga de los mundos
+            for (World w : MUNDOS_Y_GAMERULE.keySet()) {
+                ash.onWorldUnload(new WorldUnloadEvent(w));
+            }
+
+            // Recargar nuevos mundos a manejar
+            for (World w : mundosSinc) {
+                ash.sincronizarHoraMundo(w); // No se usa el evento porque el nuevo valor aún no ha sido establecido en la configuración
+            }
+        } catch (ClassCastException exc) {
+            assert(false);
         }
     }
     
@@ -215,10 +212,10 @@ final class AgenteSincHora implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onPlayerCommand(PlayerCommandPreprocessEvent event) {
         Player p = event.getPlayer();
-        
+
         @SuppressWarnings("unchecked")
         Set<World> mundosSinc = (Set<World>) Configuracion.get(ParametroConfiguracion.MundosSincronizacion.class).getValor();
-        
+
         if (event.getMessage().startsWith(COMANDO_GAMERULE) && mundosSinc.contains(p.getWorld())) {
             p.sendRawMessage(ChatColor.RED + ERROR_GAMERULE);
             event.setCancelled(true);
@@ -291,6 +288,21 @@ final class AgenteSincHora implements Listener {
     }
     
     /**
+     * Añade el mundo especificado al mapa de mundos a sincronizar, sin importar
+     * si está en la configuración o no.
+     *
+     * @param w El mundo a añadir.
+     */
+    private void sincronizarHoraMundo(World w) {
+        MUNDOS_Y_GAMERULE.putIfAbsent(w, w.getGameRuleValue(GAMERULE).equals("true"));
+        w.setGameRuleValue(GAMERULE, "false");
+
+        if (MUNDOS_Y_GAMERULE.size() == 1 && tareaSincHora == null) {
+            tareaSincHora = new SincronizarTiempo().runTaskTimer(plugin, 0, TICKS_SINC_HORA);
+        }
+    }
+    
+    /**
      * Tarea para sincronizar la hora del día de todos los mundos configurados
      * con la del servidor.
      */
@@ -311,7 +323,7 @@ final class AgenteSincHora implements Listener {
                 byte m = (byte) horaServidor.get(Calendar.MINUTE);
                 byte s = (byte) horaServidor.get(Calendar.SECOND);
                 short ms = (short) horaServidor.get(Calendar.MILLISECOND);
-                long ticks = (h * 1000) + ((m * 50) / 3) + ((s * 5) / 18) + (ms / 3600);    // Se obtiene tras simplificar h * 1000 + (m / 60) * 1000 + (s / 3600) * 1000) + (ms / 1000 / 3600) * 1000
+                long ticks = (h * 1000) + ((m * 50) / 3) + ((s * 5) / 18) + (ms / 3600);    // Se obtiene tras simplificar h * 1000 + (m / 60) * 1000 + (s / 3600) * 1000 + (ms / 1000 / 3600) * 1000
 
                 for (World w : mundosHora) {
                     w.setTime(ticks);

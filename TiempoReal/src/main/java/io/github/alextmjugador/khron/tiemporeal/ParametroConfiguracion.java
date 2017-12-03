@@ -168,19 +168,19 @@ abstract class ParametroConfiguracion<E> {
     /**
      * Establece el valor de este parámetro de configuración, si es válido. Se
      * utiliza {@link valorValido} para determinar la validez del nuevo valor.
-     * Es altamente recomendable que las sobreescrituras de este método utilicen
-     * éste.
+     * Las sobreescrituras de este método deben de llamarlo para cambiar el
+     * valor guardado.
      *
      * @param nuevoValor El valor a establecer.
      * @return Verdadero si el nuevo valor se pudo establecer por ser válido,
      * falso en caso contrario.
      */
-    public boolean setValor(E nuevoValor) {
+    final public boolean setValor(E nuevoValor) {
         boolean valorPrevioNulo = getValor() == null;
         boolean toret = valorValido(nuevoValor);
         
         if (toret && (valorPrevioNulo || !getValor().equals(nuevoValor))) {
-            this.valor = nuevoValor;
+            this.valor = procesarValor(nuevoValor);
             if (!valorPrevioNulo) {
                 // Si el valor previo es nulo, asumir que cargamos configuración desde disco y no guardar
                 Configuracion.guardar();
@@ -188,6 +188,25 @@ abstract class ParametroConfiguracion<E> {
         }
         
         return toret;
+    }
+
+    /**
+     * Procesa el valor que se le pasa como parámetro, dejándolo listo para ser
+     * el valor guardado en las estructuras de datos internas del plugin. Este
+     * método solo debe de ser llamado internamente desde su clase, no desde
+     * otras (las sobreescrituras de las subclases pueden asumir tal condición).
+     * Entonces, cuando es invocado, se ha garantizado que {@code nuevoValor} es
+     * válido y diferente al actual, y el valor devuelto será asignado como
+     * nuevo valor del parámetro de configuración.
+     *
+     * @param nuevoValor El valor a procesar.
+     * @return El susodicho valor, procesado.
+     * @todo. Mover este método a otro paquete para hacer imposible que sea
+     * llamado desde otras clases del mismo. Posiblemente esta clase sea buen
+     * material para una librería.
+     */
+    protected E procesarValor(E nuevoValor) {
+        return nuevoValor;
     }
     
     /**
@@ -210,7 +229,7 @@ abstract class ParametroConfiguracion<E> {
      *
      * @param <E> El tipo de dato del parámetro de configuración.
      */
-    abstract static class ParametroConfiguracionNotificado<E> extends ParametroConfiguracion<E> {
+    public abstract static class ParametroConfiguracionNotificado<E> extends ParametroConfiguracion<E> {
         /**
          * Contiene una referencia al método que se invocará cuando cambie el
          * valor del parámetro de configuración.
@@ -221,11 +240,9 @@ abstract class ParametroConfiguracion<E> {
          * {@inheritDoc}
          *
          * @param claseNotificacion La clase donde se espera encontrar un método
-         * estático llamado "onConfigChange", que tome un único parámetro de
-         * tipo {@link ParametroConfiguracionNotificado}.
+         * estático llamado "onConfigChange", sin parámetros.
          * @throws IllegalArgumentException Si la clase que contiene el método
-         * de notificación no contiene tal método estático que cumpla las
-         * condiciones esperadas.
+         * de notificación no contiene tal método estático, o no es accesible.
          */
         public ParametroConfiguracionNotificado(String rutaConfiguracion, String nombreArgumentoComando, String permiso, E valor, Class<?> claseNotificacion) throws IllegalArgumentException {
             super(rutaConfiguracion, nombreArgumentoComando, permiso, valor);
@@ -235,26 +252,21 @@ abstract class ParametroConfiguracion<E> {
             }
             
             try {
-                this.metodoNotificacion = claseNotificacion.getMethod("onConfigChange");
+                this.metodoNotificacion = claseNotificacion.getMethod("onConfigChange", Object.class);
             } catch (NoSuchMethodException | SecurityException exc) {
                 throw new IllegalArgumentException(exc.getMessage());
             }
         }
 
         @Override
-        public boolean setValor(E nuevoValor) {
-            boolean valoresDiferentes = !getValor().equals(nuevoValor);
-            boolean toret = super.setValor(nuevoValor);
-            
-            if (toret && valoresDiferentes) {
-                try {
-                    metodoNotificacion.invoke(null);
-                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException exc) {
-                    getServer().getLogger().log(Level.WARNING, "[TiempoReal] Error interno en el plugin: no se ha podido notificar el cambio de configuración del plugin a otras partes del mismo. Su funcionamiento puede ser inconsistente en consecuencia. Detalles: {0}", exc.getMessage());
-                }
+        protected E procesarValor(E nuevoValor) {
+            try {
+                metodoNotificacion.invoke(null, nuevoValor);
+            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException exc) {
+                getServer().getLogger().log(Level.WARNING, "[TiempoReal] Error interno en el plugin: no se ha podido notificar el cambio de configuración del plugin a otras partes del mismo. Su funcionamiento puede ser inconsistente en consecuencia. Detalles: {0}", exc.getMessage());
             }
             
-            return toret;
+            return nuevoValor;
         }
     }
     
@@ -291,7 +303,7 @@ abstract class ParametroConfiguracion<E> {
 
                 for (String nombreMundo : nuevoValor.split(",")) {
                     World w = getServer().getWorld(nombreMundo);
-                    if (w != null) {
+                    if (esMundoValido(w)) {
                         nuevoConjunto.add(w);
                     }
                 }
@@ -338,41 +350,57 @@ abstract class ParametroConfiguracion<E> {
      * cuando un jugador empuñe un reloj, para que vea la hora.
      */
     public static final class TextoHora extends ParametroConfiguracion<String> {
+        /**
+         * La cadena de texto, sin los cambios aplicados por {@link procesarValor}.
+         */
+        private String valorSinProcesar;
+        /**
+         * El número máximo de caracteres que este valor puede tomar.
+         */
+        private final int CARACTERES_MAX = 75;
+        
         public TextoHora(String rutaConfiguracion, String nombreArgumentoComando, String permiso, String valor) {
             super(rutaConfiguracion, nombreArgumentoComando, permiso, valor);
+            this.valorSinProcesar = valor;
+        }
+        
+        @Override
+        protected String procesarValor(String nuevoValor) {
+            String toret = ChatColor.translateAlternateColorCodes('&', nuevoValor);
+            
+            valorSinProcesar = nuevoValor;
+            if (toret.matches(".*" + Configuracion.REGEX_CLAVE_TEXTO_HORA + ".*\\S+")) {
+                int i = toret.indexOf(Configuracion.PALABRA_CLAVE_TEXTO_HORA);
+                String parteAnt = toret.substring(0, i); // i no va a valer -1, así que por lo menos tenemos la cadena vacía
+                toret = toret.replaceFirst(Configuracion.REGEX_CLAVE_TEXTO_HORA, Configuracion.PALABRA_CLAVE_TEXTO_HORA + ChatColor.RESET + ChatColor.getLastColors(parteAnt));
+            }
+            
+            return toret;
         }
 
         @Override
-        public boolean setValor(String nuevoValor) {
-            String[] partes = ChatColor.translateAlternateColorCodes('&', nuevoValor).split(Configuracion.REGEX_CLAVE_TEXTO_HORA);
-            StringBuilder toset = new StringBuilder(partes[0]);
-            
-            // Solo contiene un {HORA}. No entraría en el for, así que añadirlo
-            if (nuevoValor.contains(Configuracion.PALABRA_CLAVE_TEXTO_HORA) && partes.length == 1) {
-                toset.append(Configuracion.PALABRA_CLAVE_TEXTO_HORA);
-            }
-            
-            // Empezando en la segunda parte, tras el primer {HORA}, restaurar y reaplicar formatos para evitar que las sustituciones de {HORA} tengan efectos adversos
-            for (int i = 1; i < partes.length; ++i) {
-                String formatosAplicables = ChatColor.getLastColors(partes[i - 1]);
-                toset.append(Configuracion.PALABRA_CLAVE_TEXTO_HORA);
-                toset.append(ChatColor.COLOR_CHAR).append(ChatColor.RESET);
-                toset.append(formatosAplicables).append(partes[i]);
-            }
-            
-            return super.setValor(toset.toString());
+        public Object getValorYaml() {
+            return valorSinProcesar;
         }
         
         /**
-         * {@inheritDoc} Debe de contener la cadena de texto determinada por el
-         * atributo estático {@code PALABRA_CLAVE_TEXTO_HORA} en la clase
-         * {@link Configuracion}, que el plugin reemplazará por la hora actual.
+         * {@inheritDoc} Debe de contener una sola vez la cadena de texto
+         * determinada por el atributo estático {@code PALABRA_CLAVE_TEXTO_HORA}
+         * en la clase {@link Configuracion}, que el plugin reemplazará por la
+         * hora actual. Tampoco debe de ser mayor de {@link CARACTERES_MAX} caracteres.
          *
          * @return {@inheritDoc}
          */
         @Override
         public boolean valorValido(String otroValor) {
-            return otroValor != null && otroValor.contains(Configuracion.PALABRA_CLAVE_TEXTO_HORA);
+            boolean toret = false;
+            
+            if (otroValor != null && otroValor.length() <= CARACTERES_MAX) {
+                int ultimoIndice = otroValor.lastIndexOf(Configuracion.PALABRA_CLAVE_TEXTO_HORA);
+                toret = ultimoIndice != -1 && ultimoIndice == otroValor.indexOf(Configuracion.PALABRA_CLAVE_TEXTO_HORA);
+            }
+            
+            return toret;
         }
     }
 }
