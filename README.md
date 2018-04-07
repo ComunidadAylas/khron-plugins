@@ -1,8 +1,8 @@
-# mc-khron-plugins [![Estado de compilación](https://travis-ci.org/AlexTMjugador/mc-khron-plugins.svg?branch=master)](https://travis-ci.org/AlexTMjugador/mc-khron-plugins/builds)
+# mc-khron-plugins [![Estado de compilación](https://travis-ci.org/ComunidadAylas/mc-khron-plugins.svg?branch=master)](https://travis-ci.org/ComunidadAylas/mc-khron-plugins/builds)
 Plugins de Spigot para el servidor de Proyecto Khron en Minecraft.
 
 ### Documentación
-[Javadoc](https://alextmjugador.github.io/mc-khron-plugins)
+[Javadoc](https://comunidadaylas.github.io/mc-khron-plugins)
 
 ### Enlaces
 Anuncio: http://aylas.foro-activo.com/t16-proyecto-khron
