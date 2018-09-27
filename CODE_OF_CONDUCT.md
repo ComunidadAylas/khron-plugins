@@ -35,7 +35,7 @@ Este Código de Conducta se aplica tanto dentro de los espacios del proyecto com
 
 ### Aplicación
 
-Se pueden informar casos de comportamiento abusivo, hostigador o de otro modo inaceptable contactando al equipo del proyecto en https://aylas.foro-activo.com. El equipo del proyecto revisará e investigará todas las quejas y responderá de la manera que considere apropiada a las circunstancias. El equipo del proyecto está obligado a mantener la confidencialidad con respecto al reportero de un incidente. Se pueden publicar por separado más detalles de las políticas de ejecución específicas.
+Se pueden informar casos de comportamiento abusivo, hostigador o de otro modo inaceptable contactando al equipo del proyecto en aylasequipo@gmail.com o, preferiblemente, en su servidor de Discord https://discord.gg/RVAgQRS. El equipo del proyecto revisará e investigará todas las quejas y responderá de la manera que considere apropiada a las circunstancias. El equipo del proyecto está obligado a mantener la confidencialidad con respecto al reportero de un incidente. Se pueden publicar por separado más detalles de las políticas de ejecución específicas.
 
 Administradores o moderadores de proyectos que no sigan o hagan cumplir el Código de Conducta de buena fe pueden enfrentar repercusiones temporales o permanentes según lo determinen otros miembros del liderazgo del proyecto.
 
@@ -80,7 +80,7 @@ This Code of Conduct applies both within project spaces and in public spaces whe
 
 ### Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the project team at  https://aylas.foro-activo.com. All complaints will be reviewed and investigated and will result in a response that is deemed necessary and appropriate to the circumstances. The project team is obligated to maintain confidentiality with regard to the reporter of an incident. Further details of specific enforcement policies may be posted separately.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the project team at  aylasequipo@gmail.com or, preferably, in its Discord server at https://discord.gg/RVAgQRS. All complaints will be reviewed and investigated and will result in a response that is deemed necessary and appropriate to the circumstances. The project team is obligated to maintain confidentiality with regard to the reporter of an incident. Further details of specific enforcement policies may be posted separately.
 
 Project maintainers who do not follow or enforce the Code of Conduct in good faith may face temporary or permanent repercussions as determined by other members of the project’s leadership.
 
