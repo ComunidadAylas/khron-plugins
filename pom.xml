@@ -12,7 +12,6 @@
     <modules>
         <module>TiempoReal</module>
         <module>GestorBarraAccion</module>
-        <module>Economia</module>
     </modules>
     
     <properties>
