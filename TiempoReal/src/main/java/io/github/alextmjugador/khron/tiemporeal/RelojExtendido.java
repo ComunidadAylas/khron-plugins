@@ -83,7 +83,6 @@ final class RelojExtendido implements Listener {
     /**
      * Crea un nuevo reloj extendido.
      *
-     * @param plugin El plugin asociado a este reloj.
      * @throws IllegalStateException Si no se ha creado un agente de sincronización de hora antes.
      */
     public RelojExtendido() throws IllegalStateException {
