@@ -12,6 +12,7 @@
     <modules>
         <module>TiempoReal</module>
         <module>GestorBarraAccion</module>
+        <module>Economia</module>
     </modules>
     
     <properties>
@@ -79,6 +80,19 @@
                             <head>Pendiente:</head>
                         </tag>
                     </tags>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.7.0</version>
+                <configuration>
+                    <compilerArgs>
+                        <!-- Mostrar todas las advertencias de compilación -->
+                        <arg>-Xlint:all</arg>
+                        <!-- Comprobar corrección del Javadoc -->
+                        <arg>-Xdoclint:all/private</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
         </plugins>

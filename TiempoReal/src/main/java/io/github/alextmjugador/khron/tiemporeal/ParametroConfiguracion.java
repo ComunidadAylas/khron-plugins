@@ -1,18 +1,19 @@
 /*
- * Copyright (C) 2017 Proyecto Khron
+ * Plugins de Spigot del Proyecto Khron
+ * Copyright (C) 2018 Comunidad Aylas
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 package io.github.alextmjugador.khron.tiemporeal;
 
@@ -47,8 +48,8 @@ abstract class ParametroConfiguracion<E> {
      */
     private final String nombreCodigo;
     /**
-     * El nombre del permiso que un emisor de comandos necesitará tener para
-     * cambiar el parámetro.
+     * El nombre del permiso que un emisor de comandos necesitará tener,
+     * normalmente, para cambiar el parámetro.
      */
     private final String permiso;
     /**
@@ -62,19 +63,24 @@ abstract class ParametroConfiguracion<E> {
      * para realizar modificaciones a él.
      *
      * @param rutaConfiguracion La ruta de este parámetro en el archivo de
-     * configuración del plugin. No debe de ser nulo.
-     * @param nombreArgumentoComando La identificación este parámetro de
-     * configuración en el comando para cambiarlo del plugin. No debe de ser
-     * nulo.
+     * configuración del plugin.
+     * @param nombreCodigo La identificación este parámetro de configuración en
+     * el comando para cambiarlo del plugin y en su código.
      * @param permiso El nombre del permiso que un emisor de comandos necesitará
-     * tener para cambiar el parámetro. No debe de ser nulo.
+     * tener para cambiar el parámetro.
      * @param valor El valor que toma inicialmente la configuración. El
      * constructor no verifica su validez. Si es nulo, no se guardará en disco
      * el siguiente valor no nulo que este parámetro de configuración tome.
+     * @throws IllegalArgumentException Si alguno de los argumentos
+     * {@code rutaConfiguracion}, {@code nombreCodigo} y {@code permiso} es
+     * nulo.
      */
-    public ParametroConfiguracion(String rutaConfiguracion, String nombreArgumentoComando, String permiso, E valor) {
+    public ParametroConfiguracion(String rutaConfiguracion, String nombreCodigo, String permiso, E valor) throws IllegalArgumentException {
+        if (rutaConfiguracion != null && nombreCodigo != null && permiso != null) {
+            throw new IllegalArgumentException("Algún parámetro es nulo, cuando no debería de serlo");
+        }
         this.rutaConfiguracion = rutaConfiguracion;
-        this.nombreCodigo = nombreArgumentoComando;
+        this.nombreCodigo = nombreCodigo;
         this.permiso = permiso;
         this.valor = valor;
     }
@@ -167,9 +173,9 @@ abstract class ParametroConfiguracion<E> {
     
     /**
      * Establece el valor de este parámetro de configuración, si es válido. Se
-     * utiliza {@link valorValido} para determinar la validez del nuevo valor.
-     * Las sobreescrituras de este método deben de llamarlo para cambiar el
-     * valor guardado.
+     * utiliza {@link valorValido} para determinar la validez del nuevo valor, y
+     * {@link procesarValor} para preprocesar el valor que tomará el atributo de
+     * la clase que lo almacena.
      *
      * @param nuevoValor El valor a establecer.
      * @return Verdadero si el nuevo valor se pudo establecer por ser válido,
@@ -240,7 +246,8 @@ abstract class ParametroConfiguracion<E> {
          * {@inheritDoc}
          *
          * @param claseNotificacion La clase donde se espera encontrar un método
-         * estático llamado "onConfigChange", sin parámetros.
+         * estático llamado "onConfigChange", cuyo único parámetro es el nuevo
+         * valor del parámetro de configuración.
          * @throws IllegalArgumentException Si la clase que contiene el método
          * de notificación no contiene tal método estático, o no es accesible.
          */
@@ -275,7 +282,7 @@ abstract class ParametroConfiguracion<E> {
      * en el que este plugin sincronizará la hora.
      */
     public static final class MundosSincronizacion extends ParametroConfiguracionNotificado<Set<World>> {
-        public MundosSincronizacion(String rutaConfiguracion, String nombreArgumentoComando, String permiso, Set<World> valor) {
+        public MundosSincronizacion(String rutaConfiguracion, String nombreArgumentoComando, String permiso, Set<World> valor) throws IllegalArgumentException {
             super(rutaConfiguracion, nombreArgumentoComando, permiso, valor, AgenteSincHora.class);
         }
 
@@ -359,7 +366,7 @@ abstract class ParametroConfiguracion<E> {
          */
         private final int CARACTERES_MAX = 75;
         
-        public TextoHora(String rutaConfiguracion, String nombreArgumentoComando, String permiso, String valor) {
+        public TextoHora(String rutaConfiguracion, String nombreArgumentoComando, String permiso, String valor) throws IllegalArgumentException {
             super(rutaConfiguracion, nombreArgumentoComando, permiso, valor);
             this.valorSinProcesar = valor;
         }

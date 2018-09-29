@@ -1,18 +1,19 @@
 /*
- * Copyright (C) 2017 Proyecto Khron
+ * Plugins de Spigot del Proyecto Khron
+ * Copyright (C) 2018 Comunidad Aylas
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 package io.github.alextmjugador.khron.tiemporeal;
 
@@ -30,7 +31,7 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public final class PluginTiempoReal extends JavaPlugin {
     /**
-     * Indica si el plugin fue inicializado con éxito o no.
+     * Almacena si el plugin ha sido inicializado con éxito o no.
      */
     private static boolean inicializado = false;
     
@@ -43,7 +44,7 @@ public final class PluginTiempoReal extends JavaPlugin {
     public void onEnable() {
         try {
             // Cargar configuraciones
-            this.saveDefaultConfig();
+            this.saveDefaultConfig();   // Necesario para que se lea correctamente la primera vez que se ejecuta el plugin
             Configuracion.inicializar(this);
             
             // Añadir comandos del plugin
@@ -54,8 +55,8 @@ public final class PluginTiempoReal extends JavaPlugin {
             }
             
             // Comenzar acciones del plugin
-            new AgenteSincHora(this);
-            new RelojExtendido(this);
+            new AgenteSincHora();
+            new RelojExtendido();
             
             inicializado = true;
         } catch (IllegalArgumentException exc) {

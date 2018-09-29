@@ -1,24 +1,26 @@
 /*
- * Copyright (C) 2017 Proyecto Khron
+ * Plugins de Spigot del Proyecto Khron
+ * Copyright (C) 2018 Comunidad Aylas
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 package io.github.alextmjugador.khron.tiemporeal;
 
 import io.github.alextmjugador.khron.gestorbarraaccion.PluginGestorBarraAccion;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import static org.bukkit.Bukkit.getPluginManager;
 import static org.bukkit.Bukkit.getServer;
 import org.bukkit.ChatColor;
@@ -50,16 +52,10 @@ import org.bukkit.scheduler.BukkitTask;
  */
 final class RelojExtendido implements Listener {
     /**
-     * El objeto {@link Plugin} asociado a este reloj extendido.
-     */
-    private final Plugin plugin;
-    /**
      * Los jugadores que están viendo un reloj en el instante de tiempo
-     * presente. El byte se utiliza para contar el número de ciclos de
-     * {@link tareaMostrarHora} que han pasado sin actualizar el display al
-     * jugador.
+     * presente.
      */
-    private final List<Player> JUGADORES_RELOJ;
+    private final Set<Player> JUGADORES_RELOJ;
     /**
      * Tarea que se encarga de mostrar el display de la hora a los jugadores interesados.
      */
@@ -88,14 +84,13 @@ final class RelojExtendido implements Listener {
      * Crea un nuevo reloj extendido.
      *
      * @param plugin El plugin asociado a este reloj.
-     * @throws IllegalArgumentException Si el parámetro plugin y/o ash es nulo.
+     * @throws IllegalStateException Si no se ha creado un agente de sincronización de hora antes.
      */
-    public RelojExtendido(Plugin plugin) throws IllegalArgumentException {
-        if (plugin == null || AgenteSincHora.getInstancia() == null) {
-            throw new IllegalArgumentException("Se ha intentado crear un reloj extendido asociado a un plugin o a un agente de sincronización de hora nulo");
+    public RelojExtendido() throws IllegalStateException {
+        if (AgenteSincHora.getInstancia() == null) {
+            throw new IllegalStateException("Se ha intentado crear un reloj extendido asociado a un agente de sincronización de hora nulo");
         }
-        this.plugin = plugin;
-        this.JUGADORES_RELOJ = new LinkedList<>();
+        this.JUGADORES_RELOJ = Collections.synchronizedSet(new LinkedHashSet<>(Math.max(getServer().getMaxPlayers() / 4, 8)));
         inicializar();
     }
 
@@ -104,6 +99,8 @@ final class RelojExtendido implements Listener {
      * los jugadores que empuñen un reloj inicialmente vean la hora.
      */
     private void inicializar() {
+        Plugin plugin = PluginTiempoReal.getProvidingPlugin(PluginTiempoReal.class);
+        
         for (Player p : getServer().getOnlinePlayers()) {
             new ComprobarReloj(p).runTask(plugin);
         }
@@ -176,7 +173,7 @@ final class RelojExtendido implements Listener {
                 case PLACE_SOME:
                 case SWAP_WITH_CURSOR: // Se intercambia cursor con slot de inventario
                     // Todas estas actividades pueden provocar un cambio en el ítem que se empuña en alguna mano
-                    new ComprobarReloj(p).runTask(plugin);
+                    new ComprobarReloj(p).runTask(PluginTiempoReal.getProvidingPlugin(PluginTiempoReal.class));
                     break;
             }
         }
@@ -193,7 +190,7 @@ final class RelojExtendido implements Listener {
         Player p = (event.getWhoClicked() instanceof Player) ? (Player) event.getWhoClicked() : null;
         
         if (p != null) {
-            new ComprobarReloj(p).runTask(plugin);
+            new ComprobarReloj(p).runTask(PluginTiempoReal.getProvidingPlugin(PluginTiempoReal.class));
         }
     }
     
@@ -208,7 +205,7 @@ final class RelojExtendido implements Listener {
         Player p = (event.getEntity() instanceof Player) ? (Player) event.getEntity() : null;
         
         if (p != null) {
-            new ComprobarReloj(p).runTask(plugin);
+            new ComprobarReloj(p).runTask(PluginTiempoReal.getProvidingPlugin(PluginTiempoReal.class));
         }
     }
     
@@ -223,7 +220,7 @@ final class RelojExtendido implements Listener {
         Player p = (event.getPlayer() instanceof Player) ? (Player) event.getPlayer() : null;
         
         if (p != null) {
-            new ComprobarReloj(p).runTask(plugin);
+            new ComprobarReloj(p).runTask(PluginTiempoReal.getProvidingPlugin(PluginTiempoReal.class));
         }
     }
     
@@ -237,12 +234,10 @@ final class RelojExtendido implements Listener {
         synchronized (JUGADORES_RELOJ) {
             // Si somos el primer jugador en ver la hora, poner tarea en marcha
             if (JUGADORES_RELOJ.isEmpty()) {
-                tareaMostrarHora = new MostrarHora().runTaskTimer(plugin, 0, TICKS_TAREA_MOSTRAR_HORA);
+                tareaMostrarHora = new MostrarHora().runTaskTimer(PluginTiempoReal.getProvidingPlugin(PluginTiempoReal.class), 0, TICKS_TAREA_MOSTRAR_HORA);
             }
             
-            if (!JUGADORES_RELOJ.contains(p)) {
-                JUGADORES_RELOJ.add(p);
-            }
+            JUGADORES_RELOJ.add(p);
         }
     }
 
@@ -321,12 +316,15 @@ final class RelojExtendido implements Listener {
         @Override
         public void run() {
             synchronized (JUGADORES_RELOJ) {
+                Plugin plugin = PluginTiempoReal.getProvidingPlugin(PluginTiempoReal.class);
                 AgenteSincHora ash = AgenteSincHora.getInstancia();
 
                 @SuppressWarnings("unchecked")
                 String textoHora = (String) Configuracion.get(ParametroConfiguracion.TextoHora.class).getValor();
 
                 for (Player p : JUGADORES_RELOJ) {
+                    assert(p != null && p.isOnline());
+                    
                     World w = p.getWorld();
                     byte h = ash.getHora(w);
                     byte m = ash.getMinuto(w);

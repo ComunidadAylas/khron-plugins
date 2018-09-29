@@ -1,18 +1,19 @@
 /*
- * Copyright (C) 2017 Proyecto Khron
+ * Plugins de Spigot del Proyecto Khron
+ * Copyright (C) 2018 Comunidad Aylas
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 package io.github.alextmjugador.khron.tiemporeal;
 
@@ -31,7 +32,6 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.server.ServerCommandEvent;
 import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -50,12 +50,6 @@ final class AgenteSincHora implements Listener {
      * El minuto de la hora actual en el mundo.
      */
     private byte minutoActual = Byte.MIN_VALUE;
-    
-    /**
-     * El objeto {@link Plugin} asociado a este agente de sincronización de
-     * hora.
-     */
-    private final Plugin plugin;
     
     /**
      * La tarea de sincronización de hora usada por este agente para lograr su
@@ -101,21 +95,13 @@ final class AgenteSincHora implements Listener {
     /**
      * Crea un nuevo agente de sincronización de hora real con la del juego.
      *
-     * @param plugin El plugin sobre el que se ejecutarán las acciones de este
-     * agente.
-     * @throws IllegalArgumentException Si el plugin especificado es nulo.
      * @throws UnsupportedOperationException Si se intenta crear una segunda instancia de esta clase.
      */
-    public AgenteSincHora(Plugin plugin) throws IllegalArgumentException, UnsupportedOperationException {
-        if (plugin == null) {
-            throw new IllegalArgumentException("Se ha intentado crear un agente de sincronización de hora asociado a un plugin nulo");
-        }
-        
+    public AgenteSincHora() throws UnsupportedOperationException { 
         if (ash != null) {
             throw new UnsupportedOperationException("Se ha intentado crear un segundo agente de sincronización de hora");
         }
-        
-        this.plugin = plugin;
+
         inicializar();
     }
     
@@ -128,7 +114,7 @@ final class AgenteSincHora implements Listener {
         ash = this;
 
         // Registrar eventos que nos conciernen
-        getServer().getPluginManager().registerEvents(this, plugin);
+        getServer().getPluginManager().registerEvents(this, PluginTiempoReal.getProvidingPlugin(PluginTiempoReal.class));
 
         // Inicializar campos de los mundos pertinentes
         @SuppressWarnings("unchecked")
@@ -302,7 +288,7 @@ final class AgenteSincHora implements Listener {
         w.setGameRuleValue(GAMERULE, "false");
 
         if (MUNDOS_Y_GAMERULE.size() == 1 && tareaSincHora == null) {
-            tareaSincHora = new SincronizarTiempo().runTaskTimer(plugin, 0, TICKS_SINC_HORA);
+            tareaSincHora = new SincronizarTiempo().runTaskTimer(PluginTiempoReal.getProvidingPlugin(PluginTiempoReal.class), 0, TICKS_SINC_HORA);
         }
     }
     
