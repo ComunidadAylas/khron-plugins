@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"io.github.alextmjugador.khron.gestorbarraaccion"},{"l":"io.github.alextmjugador.khron.tiemporeal"}]
