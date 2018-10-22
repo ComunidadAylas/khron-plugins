@@ -70,7 +70,7 @@
                     <show>private</show>
                     <debug>false</debug>
                     <reportOutputDirectory>${project.basedir}</reportOutputDirectory>
-                    <destDir>docs</destDir>
+                    <destDir>javadoc</destDir>
                     <tags>
                         <!-- Etiqueta para indicar cosas pendientes de codificar -->
                         <tag>
