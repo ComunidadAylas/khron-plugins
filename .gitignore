@@ -1,4 +1,15 @@
+# Plugin de economía (¡por ahora!)
+/Economia/
+# Código Java compilado
 /TiempoReal/target/
 /GestorBarraAccion/target/
+/Economia/target/
 /target/
-/javadoc/
+# Javadoc
+javadoc/
+# Ficheros creados por Eclipse/VS Code
+.project
+.classpath
+/.settings/
+/GestorBarraAccion/.settings/
+/TiempoReal/.settings/

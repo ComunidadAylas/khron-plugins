@@ -57,7 +57,6 @@ final class LogicaComandos implements TabExecutor {
      * ocurre algún error con los argumentos o su sintaxis.
      */
     @Override
-    @SuppressWarnings("null")
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         boolean toret = seDebeAtender(command, sender, args.length);
 
@@ -113,7 +112,7 @@ final class LogicaComandos implements TabExecutor {
         if (seDebeAtender(command, sender) && command.getName().equalsIgnoreCase(COMANDO_SET_CONFIG) && args.length == 1) {
             Collection<ParametroConfiguracion<?>> params = Configuracion.get();
             
-            for (ParametroConfiguracion param : params) {
+            for (ParametroConfiguracion<?> param : params) {
                 if (param.puedeCambiarlo(sender)) {
                     toret.add(param.getNombreCodigo());
                 }

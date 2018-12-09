@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Set;
 import static org.bukkit.Bukkit.getServer;
 import org.bukkit.ChatColor;
+import org.bukkit.GameRule;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -66,7 +67,7 @@ final class AgenteSincHora implements Listener {
      * La gamerule que nos interesa controlar en este plugin: el ciclo
      * día-noche.
      */
-    private static final String GAMERULE = "doDaylightCycle";
+    private static final GameRule<Boolean> GAMERULE = GameRule.DO_DAYLIGHT_CYCLE;
     
     /**
      * Error a mostrar cuando un operador o la consola intenten cambiar el
@@ -77,7 +78,7 @@ final class AgenteSincHora implements Listener {
     /**
      * El comando que se usa para cambiar el valor del gamerule doDaylightCycle.
      */
-    private static final String COMANDO_GAMERULE = "/gamerule " + GAMERULE;
+    private static final String COMANDO_GAMERULE = "/gamerule " + GAMERULE.getName();
     
     /**
      * Contiene los mundos en los que está actuando este agente, además del
@@ -155,7 +156,7 @@ final class AgenteSincHora implements Listener {
         World w = event.getWorld();
         
         if (MUNDOS_Y_GAMERULE.containsKey(w)) {
-            w.setGameRuleValue(GAMERULE, MUNDOS_Y_GAMERULE.get(w) ? "true" : "false");
+            w.setGameRule(GAMERULE, MUNDOS_Y_GAMERULE.get(w));
             MUNDOS_Y_GAMERULE.remove(w);
             
             if (MUNDOS_Y_GAMERULE.isEmpty() && tareaSincHora != null) {
@@ -284,8 +285,8 @@ final class AgenteSincHora implements Listener {
      * @param w El mundo a añadir.
      */
     private void sincronizarHoraMundo(World w) {
-        MUNDOS_Y_GAMERULE.putIfAbsent(w, w.getGameRuleValue(GAMERULE).equals("true"));
-        w.setGameRuleValue(GAMERULE, "false");
+        MUNDOS_Y_GAMERULE.putIfAbsent(w, w.getGameRuleValue(GAMERULE));
+        w.setGameRule(GAMERULE, false);
 
         if (MUNDOS_Y_GAMERULE.size() == 1 && tareaSincHora == null) {
             tareaSincHora = new SincronizarTiempo().runTaskTimer(PluginTiempoReal.getProvidingPlugin(PluginTiempoReal.class), 0, TICKS_SINC_HORA);

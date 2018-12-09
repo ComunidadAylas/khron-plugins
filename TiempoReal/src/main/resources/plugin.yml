@@ -4,6 +4,7 @@ version: ${version}
 author: Khron. Para más información ver repositorio de GitHub
 main: io.github.alextmjugador.khron.tiemporeal.PluginTiempoReal
 depend: [GestorBarraAccion]
+api-version: 1.13
 commands:
     trconfig:
         description: Cambia la configuración.

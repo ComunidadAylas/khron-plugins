@@ -118,7 +118,7 @@ final class RelojExtendido implements Listener {
         PlayerInventory pinv = p.getInventory();
         ItemStack stack = pinv.getItem(event.getNewSlot());
 
-        if ((stack != null && stack.getType().equals(Material.WATCH)) || pinv.getItemInOffHand().getType().equals(Material.WATCH)) {
+        if ((stack != null && stack.getType().equals(Material.CLOCK)) || pinv.getItemInOffHand().getType().equals(Material.CLOCK)) {
             mostrarDisplayHora(p);
         } else {
             ocultarDisplayHora(p);
@@ -173,6 +173,8 @@ final class RelojExtendido implements Listener {
                 case SWAP_WITH_CURSOR: // Se intercambia cursor con slot de inventario
                     // Todas estas actividades pueden provocar un cambio en el ítem que se empuña en alguna mano
                     new ComprobarReloj(p).runTask(PluginTiempoReal.getProvidingPlugin(PluginTiempoReal.class));
+                    break;
+                default:
                     break;
             }
         }
@@ -290,8 +292,8 @@ final class RelojExtendido implements Listener {
             if (p.isOnline()) {
                 pinv = p.getInventory();
                 
-                if (pinv.getItemInMainHand().getType().equals(Material.WATCH)
-                        || pinv.getItemInOffHand().getType().equals(Material.WATCH)) {
+                if (pinv.getItemInMainHand().getType().equals(Material.CLOCK)
+                        || pinv.getItemInOffHand().getType().equals(Material.CLOCK)) {
                     mostrarDisplayHora(p);
                 } else {
                     ocultarDisplayHora(p);
@@ -318,7 +320,6 @@ final class RelojExtendido implements Listener {
                 Plugin plugin = PluginTiempoReal.getProvidingPlugin(PluginTiempoReal.class);
                 AgenteSincHora ash = AgenteSincHora.getInstancia();
 
-                @SuppressWarnings("unchecked")
                 String textoHora = (String) Configuracion.get(ParametroConfiguracion.TextoHora.class).getValor();
 
                 for (Player p : JUGADORES_RELOJ) {

@@ -40,7 +40,6 @@ public final class PluginTiempoReal extends JavaPlugin {
      * extender la funcionalidad de relojes.
      */
     @Override
-    @SuppressWarnings("ResultOfObjectAllocationIgnored")
     public void onEnable() {
         try {
             // Cargar configuraciones

@@ -26,7 +26,7 @@ import org.bukkit.plugin.Plugin;
  *
  * @author AlexTMjugador
  */
-final class Mensaje implements Comparable {
+final class Mensaje implements Comparable<Mensaje> {
     /**
      * El texto del mensaje. Puede contener caracteres de formato, como §.
      */
@@ -161,14 +161,12 @@ final class Mensaje implements Comparable {
      * Compara el mensaje actual con el especificado, en lo que a prioridades se
      * refiere.
      *
-     * @param t El mensaje a comparar con el actual. Debe de ser una instancia
-     * de la clase {@link Mensaje}.
-     * @return Un entero negativo, igual a cero o positivo si t es menor, igual
+     * @param msg El mensaje a comparar con el actual.
+     * @return Un entero negativo, igual a cero o positivo si msg es menor, igual
      * o mayor que el mensaje actual, respectivamente.
      */
     @Override
-    public int compareTo(Object t) {
-        Mensaje msg = (Mensaje) t;
+    public int compareTo(Mensaje msg) {
         return this.getPrioridad() - msg.getPrioridad();
     }
 }
