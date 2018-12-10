@@ -28,7 +28,7 @@
     "licenser.license": "AGPLv3",
     "licenser.author": "Comunidad Aylas",
     "licenser.disableAutoHeaderInsertion": false,
-    "licenser.useSingleLineStyle": true,
+    "licenser.useSingleLineStyle": false,
 
     // Usar terminal integrada Bash, tanto en Windows como en Linux.
     // En Windows, usamos la terminal bash proporcionada por Git
