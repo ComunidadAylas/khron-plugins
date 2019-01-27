@@ -1,7 +1,19 @@
 #!/bin/bash
-# Script del shell bash que instala y arranca automáticamente un servidor de Paper al que se puede conectar un depurador
-# de Java. Véase el fichero LICENSE.md en el directorio raíz de esta distribución para información de autoría y licencia
-# de este código.
+# Plugins de Spigot del Proyecto Khron
+# Copyright (C) 2019 Comunidad Aylas
+# 
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+# 
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # El URL desde el que se descargará el JAR principal de Paper
 readonly URL_DESCARGA_PAPER=https://papermc.io/ci/job/Paper-1.13/lastSuccessfulBuild/artifact/paperclip.jar
@@ -239,9 +251,9 @@ function arrancarPaper {
 	java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8000 -jar "paperclip.jar"
 }
 
-echo "**************************************************************************************"
-echo "* POR FAVOR, NO CONECTES TODAVÍA EL DEPURADOR A LA JVM, PUES ÉSTA NO SE HA INICIADO. *"
-echo "**************************************************************************************"
+echo "*************************************************************************************"
+echo "* POR FAVOR, NO CONECTES TODAVÍA EL DEPURADOR A LA JVM, PUES ÉSTA NO SE HA INICIADO *"
+echo "*************************************************************************************"
 echo "Si Visual Studio Code muestra un error acerca de que no se puede vigilar el estado de la tarea (\"The specified task cannot be tracked\"), espera a que arranque la JVM y haz clic en \"Debug Anyway\"."
 echo
 
