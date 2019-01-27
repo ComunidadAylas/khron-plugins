@@ -1,0 +1,17 @@
+{
+    // Usa IntelliSense para ver los atributos posibles, o remítete a la documentación de la
+    // extensión vscjava.vscode-java-debug.
+    // Más información en https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "request": "attach",
+            "name": "Servidor de Paper externo",
+            "preLaunchTask": "Abrir servidor de Paper externo",
+            "hostName": "127.0.0.1",
+            "port": 8000,
+            "timeout": 15000
+        }
+    ]
+}

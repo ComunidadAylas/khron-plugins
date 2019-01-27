@@ -5,8 +5,12 @@
 /GestorBarraAccion/target/
 /Economia/target/
 /target/
+# JAR
+/jar/
 # Javadoc
 javadoc/
+# Directorio de ficheros generados por tareas de VS Code
+/tasks/
 # Ficheros creados por Eclipse/VS Code
 .project
 .classpath

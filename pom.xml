@@ -16,8 +16,6 @@
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
     
     <build>
@@ -37,10 +35,11 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.1.0</version>
                 <configuration>
+                    <outputDirectory>${project.basedir}/../jar</outputDirectory>
                     <archive>
                         <addMavenDescriptor>false</addMavenDescriptor>
                         <manifestEntries>
-                            <url>https://github.com/AlexTMjugador/mc-khron-plugins</url>
+                            <url>https://github.com/ComunidadAylas/khron-plugins</url>
                         </manifestEntries>
                     </archive>
                 </configuration>
@@ -54,7 +53,6 @@
                     <detectLinks>true</detectLinks>
                     <footer>Comunidad Aylas</footer>
                     <show>private</show>
-                    <debug>false</debug>
                     <reportOutputDirectory>${project.basedir}</reportOutputDirectory>
                     <destDir>javadoc</destDir>
                     <tags>
@@ -72,6 +70,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.0</version>
                 <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
                     <compilerArgs>
                         <!-- Mostrar todas las advertencias de compilación -->
                         <arg>-Xlint:all</arg>

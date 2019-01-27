@@ -39,5 +39,7 @@
 
     // Título de la ventana de VS Code
     "window.title": "${dirty}${activeEditorShort}${separator}Plugins de Khron${separator}${appName}",
-    "java.configuration.updateBuildConfiguration": "interactive",
+
+    // Actualizar configuración de compilación del proyecto según cambios en el POM
+    "java.configuration.updateBuildConfiguration": "automatic",
 }

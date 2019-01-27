@@ -1,0 +1,23 @@
+{
+    // Usa IntelliSense para ver los atributos posibles, o remítete a la documentación en
+    // https://go.microsoft.com/fwlink/?LinkId=733558
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Abrir servidor de Paper externo",
+            "type": "shell",
+            "command": "scripts/ServidorPaper.sh",
+            "group": "test",
+            "isBackground": true,
+            "promptOnClose": true,
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true
+            }
+        }
+    ]
+}
