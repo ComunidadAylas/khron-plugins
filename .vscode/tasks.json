@@ -18,6 +18,21 @@
                 "showReuseMessage": false,
                 "clear": true
             }
+        },
+        {
+            "label": "Generar Javadoc",
+            "type": "shell",
+            "command": "scripts/GenerarJavadoc.sh",
+            "group": "build",
+            "promptOnClose": true,
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true
+            }
         }
     ]
 }
