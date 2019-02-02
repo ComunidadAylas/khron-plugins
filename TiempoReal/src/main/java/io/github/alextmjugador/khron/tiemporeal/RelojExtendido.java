@@ -89,7 +89,7 @@ final class RelojExtendido implements Listener {
      * automáticamente a partir de atributos anteriores, así que no se debe de
      * editar manualmente.
      */
-    private static final int TIEMPO_DISPLAY = TICKS_TAREA_MOSTRAR_HORA * 20000 * CICLOS_TAREA_MOSTRAR_HORA;
+    private static final int TIEMPO_DISPLAY = (TICKS_TAREA_MOSTRAR_HORA / 2) * 100 * CICLOS_TAREA_MOSTRAR_HORA;
     /**
      * Guarda una referencia al primer (y único) objeto creado de esta clase.
      */
