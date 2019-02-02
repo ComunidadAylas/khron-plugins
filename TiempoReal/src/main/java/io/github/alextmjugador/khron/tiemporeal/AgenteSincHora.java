@@ -109,6 +109,8 @@ final class AgenteSincHora implements Listener, NotificableCambioConfiguracion<S
     /**
      * Crea un nuevo agente de sincronización de hora real con la del juego,
      * registrando los eventos que maneja en el proceso, u obtiene el ya creado.
+     * 
+     * @return El agente de sincronización de hora descrito.
      */
     public static AgenteSincHora get() {
         if (ash == null) {

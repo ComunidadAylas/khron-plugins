@@ -108,6 +108,8 @@ final class RelojExtendido implements Listener {
      * los mundos deseados. Para ello, registra los eventos manejados por esta clase
      * con el plugin, y hace que los jugadores que empuñen un reloj inicialmente
      * vean la hora.
+     * 
+     * @return El reloj extendido descrito.
      */
     public static RelojExtendido get() {
         if (re == null) {
