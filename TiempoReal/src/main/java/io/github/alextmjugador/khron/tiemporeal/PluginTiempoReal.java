@@ -1,5 +1,5 @@
 /*
- * Plugins de Spigot del Proyecto Khron
+ * Plugins de Paper del Proyecto Khron
  * Copyright (C) 2018 Comunidad Aylas
  *
  * This program is free software: you can redistribute it and/or modify
@@ -18,10 +18,13 @@
 package io.github.alextmjugador.khron.tiemporeal;
 
 import java.util.Set;
-import static org.bukkit.Bukkit.getPluginManager;
+
 import org.bukkit.World;
+import org.bukkit.command.TabExecutor;
 import org.bukkit.event.world.WorldUnloadEvent;
-import org.bukkit.plugin.java.JavaPlugin;
+
+import io.github.alextmjugador.khron.libconfig.ComandosConfiguracion;
+import io.github.alextmjugador.khron.libconfig.PluginConfigurable;
 
 /**
  * Implementa un plugin que sincroniza el tiempo real del servidor con el tiempo
@@ -29,40 +32,66 @@ import org.bukkit.plugin.java.JavaPlugin;
  *
  * @author AlexTMjugador
  */
-public final class PluginTiempoReal extends JavaPlugin {
+public final class PluginTiempoReal extends PluginConfigurable {
     /**
      * Almacena si el plugin ha sido inicializado con éxito o no.
      */
     private static boolean inicializado = false;
-    
+
     /**
-     * Crea los objetos y eventos necesarios para sincronizar el tiempo y
-     * extender la funcionalidad de relojes.
+     * El comando para establecer parámetros de configuración de este plugin. Debe
+     * de estar registrado como tal en el fichero "plugin.yml".
+     */
+    private static final String COMANDO_ESTABLECER_CONFIG = "trconfig";
+    /**
+     * El comando para recargar parámetros de configuración de este plugin. Debe de
+     * estar registrado como tal en el fichero "plugin.yml".
+     */
+    private static final String COMANDO_RECARGAR_CONFIG = "trrecargarconfig";
+
+    /**
+     * El parámetro de configuración que representa los mundos en los que
+     * sincronizar la hora.
+     */
+    private static MundosSincronizacion cfgMundosSincronizacion;
+    /**
+     * El parámetro de configuración que representa el texto a mostrar cuando un
+     * jugador empuña un reloj.
+     */
+    private static TextoHora cfgTextoHora;
+
+    /**
+     * Crea los objetos y eventos necesarios para sincronizar el tiempo y extender
+     * la funcionalidad de relojes, además de inicializar los valores de
+     * configuración del plugin.
      */
     @Override
     public void onEnable() {
-        try {
-            // Cargar configuraciones
-            this.saveDefaultConfig();   // Necesario para que se lea correctamente la primera vez que se ejecuta el plugin
-            Configuracion.inicializar(this);
-            
-            // Añadir comandos del plugin
-            LogicaComandos lc = new LogicaComandos();
-            for (String comando : this.getDescription().getCommands().keySet()) {
-                getCommand(comando).setExecutor(lc);
-                getCommand(comando).setTabCompleter(lc);
-            }
-            
-            // Comenzar acciones del plugin
-            new AgenteSincHora();
-            new RelojExtendido();
-            
-            inicializado = true;
-        } catch (IllegalArgumentException exc) {
-            getServer().getLogger().severe("[TiempoReal] La configuración del plugin es inválida. Se detiene su ejecución. Detalles:");
-            getServer().getLogger().severe(exc.getMessage());
-            getPluginManager().disablePlugin(this);
+        // Realizar tareas de inicialización de un plugin configurable
+        super.onEnable();
+
+        // Crear los objetos que representan parámetros de configuración e
+        // inicializarlos, si hace falta
+        if (cfgMundosSincronizacion == null) {
+            cfgMundosSincronizacion = new MundosSincronizacion();
         }
+        if (cfgTextoHora == null) {
+            cfgTextoHora = new TextoHora();
+        }
+        leerParametrosConfiguracion(cfgMundosSincronizacion, cfgTextoHora);
+
+        // Registrar comandos del plugin
+        TabExecutor ejecutorComandos = new ComandosConfiguracion(COMANDO_ESTABLECER_CONFIG, COMANDO_RECARGAR_CONFIG,
+                cfgMundosSincronizacion, cfgTextoHora);
+        getCommand(COMANDO_ESTABLECER_CONFIG).setExecutor(ejecutorComandos);
+        getCommand(COMANDO_ESTABLECER_CONFIG).setTabCompleter(ejecutorComandos);
+        getCommand(COMANDO_RECARGAR_CONFIG).setExecutor(ejecutorComandos);
+        getCommand(COMANDO_RECARGAR_CONFIG).setTabCompleter(ejecutorComandos);
+
+        // Comenzar acciones del plugin
+        RelojExtendido.get();
+
+        inicializado = true;
     }
 
     /**
@@ -71,14 +100,33 @@ public final class PluginTiempoReal extends JavaPlugin {
     @Override
     public void onDisable() {
         if (inicializado) {
-            AgenteSincHora ash = AgenteSincHora.getInstancia();
+            AgenteSincHora ash = AgenteSincHora.get();
 
-            @SuppressWarnings("unchecked")
-            Set<World> mundosSinc = (Set<World>) Configuracion.get(ParametroConfiguracion.MundosSincronizacion.class).getValor();
-
-            for (World w : mundosSinc) {
+            for (World w : getCfgMundosSincronizacion()) {
                 ash.onWorldUnload(new WorldUnloadEvent(w));
             }
         }
+    }
+
+    /**
+     * Obtiene el valor actual del parámetro de configuración que indica el texto a
+     * mostrar cuando un jugador empuña un reloj.
+     * 
+     * @return El devandicho valor del parámetro de configuración. Puede ser nulo si
+     *         todavía no se ha inicializado la configuración del plugin.
+     */
+    public String getCfgTextoHora() {
+        return cfgTextoHora != null ? cfgTextoHora.getValor() : null;
+    }
+
+    /**
+     * Obtiene el valor actual del parámetro de configuración que indica los mundos
+     * en los que sincronizar la hora con la del servidor.
+     * 
+     * @return El devandicho valor del parámetro de configuración. Puede ser nulo si
+     *         todavía no se ha inicializado la configuración del plugin.
+     */
+    public Set<World> getCfgMundosSincronizacion() {
+        return cfgMundosSincronizacion != null ? cfgMundosSincronizacion.getValor() : null;
     }
 }

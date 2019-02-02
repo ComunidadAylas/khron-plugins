@@ -3,7 +3,7 @@ description: ${description}
 version: ${version}
 author: Khron. Para más información ver repositorio de GitHub
 main: io.github.alextmjugador.khron.tiemporeal.PluginTiempoReal
-depend: [GestorBarraAccion]
+depend: [GestorBarraAccion, LibConfig]
 api-version: 1.13
 commands:
     trconfig:
@@ -14,7 +14,7 @@ commands:
         usage: "Sintaxis: /<command> [parámetro] [valor]"
     trrecargarconfig:
         description: Recarga la configuración.
-        aliases: [ trrcfg, trrecargarcfg, trreccfg, trrecconfig ]
+        aliases: [ trrecargarcfg, trreccfg, trrecconfig ]
         permission: tiemporeal.trrecargarconfig
         permission-message: ""
         usage: "Sintaxis: /<command>"

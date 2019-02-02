@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.alextmjugador.khron</groupId>
     <artifactId>TiempoReal</artifactId>
-    <version>3.0.0-SNAPSHOT</version>
+    <version>3.2.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>TiempoReal</name>
     <description>Plugin para sincronizar la hora real con la del juego. Añade la visualización de la hora exacta a ítems de relojes.</description>
@@ -13,14 +13,14 @@
             <id>AlexTMjugador (AlexBlocks123)</id>
             <name>Alejandro González</name>
             <organization>Aylas</organization>
-            <organizationUrl>http://aylas.foro-activo.com/</organizationUrl>
+            <organizationUrl>https://www.guilded.gg/Comunidad-Aylas</organizationUrl>
         </developer>
     </developers>
     
     <parent>
         <artifactId>Minecraft-Khron-Plugins</artifactId>
         <groupId>io.github.alextmjugador.khron</groupId>
-        <version>1.1.0</version>
+        <version>[1.1.0,2.0.0)</version>
     </parent>
     
     <dependencies>
@@ -29,15 +29,12 @@
             <artifactId>GestorBarraAccion</artifactId>
             <version>[2.0.0-SNAPSHOT,3.0.0)</version>
             <scope>provided</scope>
-            <!-- Bukkit ya está incluido en Spigot. Importarlo dos veces solo
-            restringe el uso de la API de Spigot (aunque este plugin no la usa)
-            y da más dependencias que procesar -->
-            <exclusions>
-                <exclusion>
-                    <groupId>org.bukkit</groupId>
-                    <artifactId>bukkit</artifactId>
-                </exclusion>
-            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>io.github.alextmjugador.khron</groupId>
+            <artifactId>LibConfig</artifactId>
+            <version>[1.0.0-SNAPSHOT,2.0.0)</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>
