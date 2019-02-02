@@ -37,7 +37,8 @@ if [ $? -eq 0 ]; then
 			mostrarError
 		fi
 		echo "> Eliminando ficheros ajenos al VCS de la rama del repositorio..."
-		git clean -x -d -f -e "/javadoc/" -e "/scripts/" -i
+		echo "  Ten en cuenta que es necesario que no se limpien los directorios javadoc y scripts."
+		git clean -xdf -i
 		echo "> Descartando cambios a ficheros controlados por el VCS..."
 		git checkout -- .
 		if [ $? -ne 0 ]; then
@@ -45,7 +46,7 @@ if [ $? -eq 0 ]; then
 		fi
 		echo "> Moviendo nuevo Javadoc..."
 		# Usamos cp seguido de rm porque mv no está diseñado para combinar directorios
-		cp -r javadoc/ .
+		cp -r javadoc/* .
 		if [ $? -ne 0 ]; then
 			mostrarError
 		fi
