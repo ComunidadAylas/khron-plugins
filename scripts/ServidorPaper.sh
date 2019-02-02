@@ -481,7 +481,7 @@ instalarPaper
 if [ $? -eq 0 ]; then
 	copiarPlugins
 	arrancarPaper
-	if [ $? -eq 0 -o -f "tasks/servidor-paper/paperclip.jar" ]; then
+	if [ $? -ne 0 -a -f "tasks/servidor-paper/paperclip.jar" ]; then
 		echo "! Ha ocurrido un error arrancando el servidor de Paper. Esto puede deberse a un fichero paperclip.jar corrupto. ¿Quieres descargarlo de nuevo? (S/N) "
 		read r
 		case "$r" in
