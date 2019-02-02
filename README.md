@@ -1,2 +1,0 @@
-# Documentación Javadoc de los plugins de Khron
-En esta rama se encuentra exclusivamente la documentación de los plugins de Khron, que es generada con Javadoc. El acceso de modificación a esta rama es restringido a administradores. Para más información sobre el proyecto y su licencia, consulta otra rama.

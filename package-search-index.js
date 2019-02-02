@@ -1,1 +1,1 @@
-packageSearchIndex = [{"l":"io.github.alextmjugador.khron.gestorbarraaccion"},{"l":"io.github.alextmjugador.khron.tiemporeal"}]
+packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"io.github.alextmjugador.khron.gestorbarraaccion"},{"l":"io.github.alextmjugador.khron.libconfig"},{"l":"io.github.alextmjugador.khron.tiemporeal"}]
