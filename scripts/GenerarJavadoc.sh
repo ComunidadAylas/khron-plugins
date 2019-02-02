@@ -54,6 +54,7 @@ if [ $? -eq 0 ]; then
 		if [ $? -ne 0 ]; then
 			mostrarError
 		fi
+		git add .
 		echo
 		echo "Javadoc generado y colocado en gh-pages con éxito. Genera una confirmación (commit) y publica los cambios (push) cuando todo esté listo."
 	fi
