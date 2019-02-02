@@ -1,6 +1,6 @@
 /*
  * Plugins de Paper del Proyecto Khron
- * Copyright (C) 201- Comunidad Aylas
+ * Copyright (C) 2019 Comunidad Aylas
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
