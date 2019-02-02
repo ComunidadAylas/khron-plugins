@@ -37,7 +37,7 @@ if [ $? -eq 0 ]; then
 			mostrarError
 		fi
 		echo "> Eliminando ficheros ajenos al VCS de la rama del repositorio..."
-		git clean -df -x -e "/javadoc/"
+		git clean -df -x -e "/javadoc/" -e "/scripts/"
 		if [ $? -ne 0 ]; then
 			mostrarError
 		fi
