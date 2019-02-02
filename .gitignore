@@ -4,6 +4,7 @@
 /TiempoReal/target/
 /GestorBarraAccion/target/
 /Economia/target/
+/LibConfig/target/
 /target/
 # JAR
 /jar/
@@ -14,6 +15,9 @@ javadoc/
 # Ficheros creados por Eclipse/VS Code
 .project
 .classpath
+.factorypath
 /.settings/
 /GestorBarraAccion/.settings/
 /TiempoReal/.settings/
+/Economia/.settings/
+/LibConfig/.settings/

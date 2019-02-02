@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.alextmjugador.khron</groupId>
     <artifactId>Minecraft-Khron-Plugins</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
     <packaging>pom</packaging>
     <name>Minecraft Khron: plugins</name>
     <description>Proyecto que contiene todos los plugins desarrollados por y para el servidor de Minecraft Khron.</description>
@@ -12,6 +12,7 @@
     <modules>
         <module>TiempoReal</module>
         <module>GestorBarraAccion</module>
+        <module>LibConfig</module>
     </modules>
     
     <properties>
@@ -85,15 +86,15 @@
     
     <repositories>
         <repository>
-            <id>snapshots-spigot</id>
-            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+            <id>papermc</id>
+            <url>https://papermc.io/repo/repository/maven-public/</url>
         </repository>
     </repositories>
     
     <dependencies>
         <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
+            <groupId>com.destroystokyo.paper</groupId>
+            <artifactId>paper-api</artifactId>
             <version>1.13.2-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>

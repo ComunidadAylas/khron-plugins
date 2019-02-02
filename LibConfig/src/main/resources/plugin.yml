@@ -1,0 +1,7 @@
+name: ${name}
+description: ${description}
+version: ${version}
+author: Khron. Para más información ver repositorio de GitHub
+api-version: 1.13
+main: io.github.alextmjugador.khron.libconfig.PluginLibConfig
+prefix: ${artifactId}

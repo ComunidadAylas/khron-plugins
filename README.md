@@ -1,5 +1,5 @@
 # Plugins de Khron [![Licencia](https://img.shields.io/github/license/ComunidadAylas/khron-plugins.svg)](https://github.com/ComunidadAylas/khron-plugins/blob/master/LICENSE) [![Incidencias](https://img.shields.io/github/issues/ComunidadAylas/khron-plugins.svg)](https://github.com/ComunidadAylas/khron-plugins/issues) [![Estado de compilación](https://travis-ci.org/ComunidadAylas/khron-plugins.svg?branch=master)](https://travis-ci.org/ComunidadAylas/khron-plugins/builds)
-Este repositorio se utiliza como herramienta de desarrollo de los plugins de Spigot/Paper para el servidor de Proyecto Khron en Minecraft, desde la fase pruebas hasta el mantenimiento.
+Este repositorio se utiliza como herramienta de desarrollo de los plugins de Paper para el servidor de Proyecto Khron en Minecraft, desde la fase de pruebas hasta el mantenimiento.
 
 ### Documentación técnica
 Los desarrolladores encontrarán útiles estos recursos:

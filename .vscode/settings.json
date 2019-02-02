@@ -24,7 +24,7 @@
     "git.autofetch": true,
 
     // Información de licencia (requiere la extensión licenser)
-    "licenser.projectName": "Plugins de Spigot del Proyecto Khron",
+    "licenser.projectName": "Plugins de Paper del Proyecto Khron",
     "licenser.license": "AGPLv3",
     "licenser.author": "Comunidad Aylas",
     "licenser.disableAutoHeaderInsertion": false,
