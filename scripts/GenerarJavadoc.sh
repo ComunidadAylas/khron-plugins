@@ -37,19 +37,22 @@ if [ $? -eq 0 ]; then
 			mostrarError
 		fi
 		echo "> Eliminando ficheros ajenos al VCS de la rama del repositorio..."
-		git clean -xdf -e "/javadoc/" -e "/scripts/" -i
+		git clean -x -d -f -e "/javadoc/" -e "/scripts/" -i
 		echo "> Descartando cambios a ficheros controlados por el VCS..."
 		git checkout -- .
 		if [ $? -ne 0 ]; then
 			mostrarError
 		fi
-		echo "> Copiando nuevo Javadoc..."
-		mv javadoc/* .
+		echo "> Moviendo nuevo Javadoc..."
+		# Usamos cp seguido de rm porque mv no está diseñado para combinar directorios
+		cp -r javadoc/ .
 		if [ $? -ne 0 ]; then
 			mostrarError
 		fi
-		# Este directorio debería de quedar vacío tras la ejecución exitosa del mv anterior
-		rmdir javadoc
+		rm -rf javadoc
+		if [ $? -ne 0 ]; then
+			mostrarError
+		fi
 		echo
 		echo "Javadoc generado y colocado en gh-pages con éxito. Genera una confirmación (commit) y publica los cambios (push) cuando todo esté listo."
 	fi
