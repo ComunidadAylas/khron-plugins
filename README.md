@@ -1,8 +1,6 @@
-<p align="center">
-  <img width="333" height="271" src="https://cdn.discordapp.com/attachments/372038860948897803/471775540077133826/Logo_Aylas.png">
-</p>
+<p align="center"><img width="333" height="271" src="https://cdn.discordapp.com/attachments/372038860948897803/471775540077133826/Logo_Aylas.png"></p>
 
-[![Discord](https://discordapp.com/api/guilds/85364538328768512/widget.png)](https://discord.gg/RVAgQRS)  [![Licencia](https://img.shields.io/github/license/ComunidadAylas/khron-plugins.svg)](https://github.com/ComunidadAylas/khron-plugins/blob/master/LICENSE) [![Incidencias](https://img.shields.io/github/issues/ComunidadAylas/khron-plugins.svg)](https://github.com/ComunidadAylas/khron-plugins/issues) [![Estado de compilación](https://travis-ci.org/ComunidadAylas/khron-plugins.svg?branch=master)](https://travis-ci.org/ComunidadAylas/khron-plugins/builds) ![Code size in bytes](https://img.shields.io/github/languages/code-size/badges/shields.svg)
+<p align="center"><a href="https://discord.gg/RVAgQRS"><img src="https://discordapp.com/api/guilds/85364538328768512/widget.png" alt="Discord"></a> <a href="https://github.com/ComunidadAylas/khron-plugins/blob/master/LICENSE"><img src="https://img.shields.io/github/license/ComunidadAylas/khron-plugins.svg" alt="Licencia"></a> <a href="https://github.com/ComunidadAylas/khron-plugins/issues"><img src="https://img.shields.io/github/issues/ComunidadAylas/khron-plugins.svg" alt="Incidencias"></a> <a href="https://travis-ci.org/ComunidadAylas/khron-plugins/builds"><img src="https://travis-ci.org/ComunidadAylas/khron-plugins.svg?branch=master" alt="Estado de compilación"></a> <img src="https://img.shields.io/github/repo-size/ComunidadAylas/khron-plugins.svg" alt="Tamaño del repositorio"></p>
 
 # Plugins de Khron 
 Este repositorio se utiliza como herramienta de desarrollo de los plugins de Paper para el servidor de Proyecto Khron en Minecraft, desde la fase de pruebas hasta el mantenimiento.
