@@ -1,0 +1,8 @@
+# Estas son las plataformas de financiamiento soportadas
+
+github: # Reemplazar con hasta 4 usuarios que usen GitHub Sponsors, p. ej., [user1, user2]
+patreon: # Reemplazar con un nombre de usuario de Patreon
+open_collective: # Reemplazar con un nombre de usuario de Open Collective
+ko_fi: # Reemplazar con un nombre de usuario de Ko-fi
+tidelift: # Reemplazar con un nombre Tidelift en el formato nombre-plataforma/nombre-paquete, p. ej., npm/babel
+custom: https://server.tebex.io/dashboard
