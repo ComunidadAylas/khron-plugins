@@ -473,7 +473,6 @@ echo
 # Instalar Paper, si no lo está, y si todo va bien abrir el servidor
 if instalarPaper; then
 	copiarPlugins
-	arrancarPaper
 	if (! arrancarPaper) && [ -f "tasks/servidor-paper/paperclip.jar" ]; then
 		echo "! Ha ocurrido un error arrancando el servidor de Paper. Esto puede deberse a un fichero paperclip.jar corrupto. ¿Quieres descargarlo de nuevo? (S/N) "
 		read -r r
