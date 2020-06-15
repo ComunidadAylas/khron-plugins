@@ -16,21 +16,19 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 # El URL desde el que se descargará el JAR principal de Paper
-readonly URL_DESCARGA_PAPER=https://papermc.io/ci/job/Paper-1.13/lastSuccessfulBuild/artifact/paperclip.jar
+readonly URL_DESCARGA_PAPER=https://papermc.io/ci/job/Paper-1.15/lastSuccessfulBuild/artifact/paperclip.jar
+# El ejecutable de Java a usar. Si se deja en blanco, se deducirá
+# a partir de la variable de entorno PATH
+readonly EJECUTABLE_JAVA=
 
 function instalarPaper {
 	# Directorio donde residirá el servidor de Paper
 	mkdir -p tasks/servidor-paper
-	cd tasks/servidor-paper
-
-	# Propagar error que pudiese haber ocurrido con el sistema de ficheros
-	if [ $? -ne 0 ]; then
-		return $?
-	fi
+	cd tasks/servidor-paper || return $?
 
 	# Si paperclip.jar existe y es un fichero de tamaño menor de 40 MiB, asumir que es una descarga parcial
 	# incorrecta y descartarla
-	if [[ -f paperclip.jar && `wc -c paperclip.jar | cut -d" " -f1` -lt 41943040 ]]; then
+	if [[ -f paperclip.jar && $(wc -c paperclip.jar | cut -d" " -f1) -lt 41943040 ]]; then
 		rm paperclip.jar
 	fi
 
@@ -50,7 +48,7 @@ function instalarPaper {
 	fi
 
 	# Si acabamos de descargar el fichero paperclip.jar, realizar tareas de configuración inicial del servidor
-	if [ `cat codigo_http && rm codigo_http` = 200 ]; then
+	if [ "$(cat codigo_http && rm codigo_http)" = 200 ]; then
 		echo "> Configurando servidor Paper..."
 		# Aplicar configuraciones predeterminadas del servidor
 		(cat <<SERVER_PROPERTIES
@@ -427,14 +425,14 @@ SCRIPT_REINICIO
 }
 
 function arrancarPaper {
-	cd tasks/servidor-paper
+	cd tasks/servidor-paper || return $?
 	echo "> Iniciando servidor Paper con soporte para JPDA mediante TCP/IP en el puerto 8000..."
 	echo
 	echo "************************************************************************"
 	echo "* CONECTAR EL DEPURADOR A LA JVM CUANDO SE INDIQUE QUE ESTÁ ESCUCHANDO *"
-	echo "************************* (Debug Anyway) *******************************"
+	echo "************************************************************************"
 	echo
-	java -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=8000 -Dcom.mojang.eula.agree=true -jar "paperclip.jar"
+	"${EJECUTABLE_JAVA:-java}" -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=8000 -Dcom.mojang.eula.agree=true -Xmx1G -jar "paperclip.jar" nogui
 	cd ../..
 	return $?
 }
@@ -443,10 +441,9 @@ function copiarPlugins {
 	# Crear directorio donde residirán los plugins del servidor de Paper si hace falta
 	if [ ! -d "tasks/servidor-paper/plugins" ]; then
 		echo "> Creando directorio de plugins del servidor..."
-		mkdir -p tasks/servidor-paper/plugins
 
 		# Propagar error que pudiese haber ocurrido con el sistema de ficheros
-		if [ $? -ne 0 ]; then
+		if ! mkdir -p tasks/servidor-paper/plugins; then
 			return $?
 		fi
 	fi
@@ -454,17 +451,15 @@ function copiarPlugins {
 	# Copiar ficheros JAR en el directorio de salida, si hay
 	if [ -d "jar" ]; then
 		echo "> Limpiando directorio de plugins del servidor..."
-		rm -rf tasks/servidor-paper/plugins/*
 
 		# Avisar de los errores que pudiesen haber ocurrido
-		if [ $? -ne 0 ]; then
+		if ! rm -rf tasks/servidor-paper/plugins/*; then
 			echo "! No se ha podido limpiar el directorio de plugins del servidor de ficheros existentes. Es posible que la depuración parta de un estado inconsistente o difícilmente reproducible."
 		fi
 
 		echo "> Copiando plugins empaquetados al directorio de plugins del servidor..."
-		cp jar/*.jar tasks/servidor-paper/plugins
 
-		if [ $? -ne 0 ]; then
+		if ! cp jar/*.jar tasks/servidor-paper/plugins; then
 			echo "! Ha ocurrido un error al copiar los plugins empaquetados al directorio de plugins del servidor. Es muy posible que no se hayan colocado y, por tanto, no se carguen."
 		fi
 	fi
@@ -473,23 +468,20 @@ function copiarPlugins {
 echo "*************************************************************************************"
 echo "* POR FAVOR, NO CONECTES TODAVÍA EL DEPURADOR A LA JVM, PUES ÉSTA NO SE HA INICIADO *"
 echo "*************************************************************************************"
-echo "Si Visual Studio Code muestra un error acerca de que no se puede vigilar el estado de la tarea (\"The specified task cannot be tracked\"), espera a que arranque la JVM y haz clic en \"Debug Anyway\"."
 echo
 
 # Instalar Paper, si no lo está, y si todo va bien abrir el servidor
-instalarPaper
-if [ $? -eq 0 ]; then
+if instalarPaper; then
 	copiarPlugins
 	arrancarPaper
-	if [ $? -ne 0 -a -f "tasks/servidor-paper/paperclip.jar" ]; then
+	if (! arrancarPaper) && [ -f "tasks/servidor-paper/paperclip.jar" ]; then
 		echo "! Ha ocurrido un error arrancando el servidor de Paper. Esto puede deberse a un fichero paperclip.jar corrupto. ¿Quieres descargarlo de nuevo? (S/N) "
-		read r
+		read -r r
 		case "$r" in
 			S|s)
 				clear
 				rm tasks/servidor-paper/paperclip.jar
-				instalarPaper
-				if [ $? -eq 0 ]; then
+				if instalarPaper; then
 					copiarPlugins
 					arrancarPaper
 				fi;;

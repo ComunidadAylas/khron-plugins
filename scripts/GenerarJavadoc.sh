@@ -21,37 +21,32 @@ function mostrarError {
 }
 
 echo "> Ejecutando objetivo de Maven de generación de Javadoc..."
-mvn javadoc:aggregate
-if [ $? -eq 0 ]; then
+if mvn javadoc:aggregate; then
 	echo "El Javadoc debería de haber sido generado en la carpeta javadoc."
 	echo "************"
 	echo "* ATENCIÓN *"
 	echo "************"
 	echo "Se realizarán comandos de git para cambiarse a la rama de la página de Javadoc. Estos comando pueden descartar cambios hechos en el repositorio local, y en general provocar pérdida de información".
 	echo "¿Quieres continuar con la ejecución del script? (S/N)"
-	read r
-	if [ "$r" = 's' -o "$r" = 'S' ]; then
+	read -r r
+	if [ "$r" = 's' ] || [ "$r" = 'S' ]; then
 		echo "> Cambiando a la rama gh-pages..."
-		git checkout gh-pages
-		if [ $? -ne 0 ]; then
+		if ! git checkout gh-pages; then
 			mostrarError
 		fi
 		echo "> Eliminando ficheros ajenos al VCS de la rama del repositorio..."
 		echo "  Ten en cuenta que es necesario que no se limpien los directorios javadoc y scripts."
 		git clean -xdf -i
 		echo "> Descartando cambios a ficheros controlados por el VCS..."
-		git checkout -- .
-		if [ $? -ne 0 ]; then
+		if ! git checkout -- .; then
 			mostrarError
 		fi
 		echo "> Moviendo nuevo Javadoc..."
 		# Usamos cp seguido de rm porque mv no está diseñado para combinar directorios
-		cp -r javadoc/* .
-		if [ $? -ne 0 ]; then
+		if ! cp -r javadoc/* .; then
 			mostrarError
 		fi
-		rm -rf javadoc
-		if [ $? -ne 0 ]; then
+		if ! rm -rf javadoc; then
 			mostrarError
 		fi
 		git add .

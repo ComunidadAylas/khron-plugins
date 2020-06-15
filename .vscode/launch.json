@@ -8,10 +8,9 @@
             "type": "java",
             "request": "attach",
             "name": "Servidor de Paper externo",
-            "preLaunchTask": "Abrir servidor de Paper externo",
             "hostName": "127.0.0.1",
             "port": 8000,
-            "timeout": 15000
+            "timeout": 10000
         }
     ]
 }
