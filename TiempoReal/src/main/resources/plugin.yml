@@ -30,9 +30,12 @@ permissions:
         children:
             tiemporeal.trconfig.mundosSinc: true
             tiemporeal.trconfig.textoHora: true
+            tiemporeal.trconfig.textoHoraDimensionSinCiclo: true
     tiemporeal.trconfig.mundosSinc:
         description: Permite cambiar en qué mundos ${name} sincroniza la hora con la del servidor.
     tiemporeal.trconfig.textoHora:
         description: Permite cambiar el texto que ${name} mostrará a los jugadores cuando empuñen un reloj.
+    tiemporeal.trconfig.textoHoraDimensionSinCiclo:
+        description: Permite cambiar el texto que ${name} mostrará a los jugadores cuando empuñen un reloj, en dimensiones donde no hay un ciclo día-noche.
     tiemporeal.trrecargarconfig:
         description: Permite recargar la configuración de ${name} desde disco.

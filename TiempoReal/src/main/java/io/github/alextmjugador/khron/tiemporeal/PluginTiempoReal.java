@@ -43,6 +43,7 @@ public final class PluginTiempoReal extends PluginConfigurable {
      * de estar registrado como tal en el fichero "plugin.yml".
      */
     private static final String COMANDO_ESTABLECER_CONFIG = "trconfig";
+
     /**
      * El comando para recargar parámetros de configuración de este plugin. Debe de
      * estar registrado como tal en el fichero "plugin.yml".
@@ -54,11 +55,18 @@ public final class PluginTiempoReal extends PluginConfigurable {
      * sincronizar la hora.
      */
     private static MundosSincronizacion cfgMundosSincronizacion;
+
     /**
      * El parámetro de configuración que representa el texto a mostrar cuando un
      * jugador empuña un reloj.
      */
     private static TextoHora cfgTextoHora;
+
+    /**
+     * El parámetro de configuración que indica el texto a mostrar cuando un jugador
+     * empuña un reloj, en una dimensión que no tenga un ciclo día-noche.
+     */
+    private static TextoHoraDimensionSinCiclo cfgTextoHoraDimensionSinCiclo;
 
     /**
      * Crea los objetos y eventos necesarios para sincronizar el tiempo y extender
@@ -75,15 +83,23 @@ public final class PluginTiempoReal extends PluginConfigurable {
         if (cfgMundosSincronizacion == null) {
             cfgMundosSincronizacion = new MundosSincronizacion();
         }
+
         if (cfgTextoHora == null) {
             cfgTextoHora = new TextoHora();
         }
-        leerParametrosConfiguracion(cfgMundosSincronizacion, cfgTextoHora);
+
+        if (cfgTextoHoraDimensionSinCiclo == null) {
+            cfgTextoHoraDimensionSinCiclo = new TextoHoraDimensionSinCiclo();
+        }
+
+        leerParametrosConfiguracion(
+            cfgMundosSincronizacion, cfgTextoHora, cfgTextoHoraDimensionSinCiclo
+        );
 
         // Registrar comandos del plugin
         TabExecutor ejecutorComandos = new ComandosConfiguracion(
             COMANDO_ESTABLECER_CONFIG, COMANDO_RECARGAR_CONFIG,
-            cfgMundosSincronizacion, cfgTextoHora
+            cfgMundosSincronizacion, cfgTextoHora, cfgTextoHoraDimensionSinCiclo
         );
         getCommand(COMANDO_ESTABLECER_CONFIG).setExecutor(ejecutorComandos);
         getCommand(COMANDO_ESTABLECER_CONFIG).setTabCompleter(ejecutorComandos);
@@ -119,6 +135,18 @@ public final class PluginTiempoReal extends PluginConfigurable {
      */
     public String getCfgTextoHora() {
         return cfgTextoHora != null ? cfgTextoHora.getValor() : null;
+    }
+
+    /**
+     * Obtiene el valor actual del parámetro de configuración que indica el texto a
+     * mostrar cuando un jugador empuña un reloj, en una dimensión que no tenga un
+     * ciclo día-noche.
+     *
+     * @return El devandicho valor del parámetro de configuración. Puede ser nulo si
+     *         todavía no se ha inicializado la configuración del plugin.
+     */
+    public String getCfgTextoHoraDimensionSinCiclo() {
+        return cfgTextoHoraDimensionSinCiclo != null ? cfgTextoHoraDimensionSinCiclo.getValor() : null;
     }
 
     /**

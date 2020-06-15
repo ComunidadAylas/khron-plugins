@@ -24,7 +24,6 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -356,6 +355,7 @@ final class RelojExtendido implements Listener {
         public void run() {
             AgenteSincHora ash = AgenteSincHora.get();
             String textoHora = estePlugin.getCfgTextoHora();
+            String textoHoraSinCiclo = estePlugin.getCfgTextoHoraDimensionSinCiclo();
             Iterator<Player> iter = JUGADORES_RELOJ.iterator();
 
             while (iter.hasNext()) {
@@ -373,9 +373,14 @@ final class RelojExtendido implements Listener {
                     byte m = ash.getMinuto(w);
 
                     if (h >= 0 && m >= 0) {
+                        boolean mundoConCicloDiaNoche = w.getEnvironment().equals(Environment.NORMAL);
+
                         String hora = String.format("%02d", h) + ":" + String.format("%02d", m);
-                        String textoDisplay = textoHora.replaceFirst(TextoHora.REGEX_CLAVE_TEXTO_HORA,
-                                w.getEnvironment().equals(Environment.NORMAL) ? hora : ChatColor.MAGIC + hora);
+                        hora = mundoConCicloDiaNoche ? hora : ChatColor.MAGIC + hora;
+
+                        String textoDisplay = mundoConCicloDiaNoche ?
+                            textoHora.replaceFirst(TextoHora.REGEX_CLAVE_TEXTO_HORA, hora) :
+                            textoHoraSinCiclo.replaceFirst(TextoHora.REGEX_CLAVE_TEXTO_HORA, hora);
 
                         PluginGestorBarraAccion.borrarMensajes(estePlugin, p);
                         PluginGestorBarraAccion.mostrarMensaje(estePlugin, p, textoDisplay, TIEMPO_DISPLAY, (byte) -10);

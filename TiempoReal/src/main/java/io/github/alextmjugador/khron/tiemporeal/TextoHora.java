@@ -24,15 +24,16 @@ import io.github.alextmjugador.khron.libconfig.ParametroConfiguracion;
 /**
  * Modela un parámetro de configuración que contiene el texto a mostrar cuando
  * un jugador empuñe un reloj, para que vea la hora.
- * 
+ *
  * @author AlexTMjugador
  */
-final class TextoHora extends ParametroConfiguracion<String, String> {
+class TextoHora extends ParametroConfiguracion<String, String> {
     /**
      * La palabra clave que debe de contener el texto de la hora en el reloj para
      * ser válido. Se sustituirá por la hora del mundo en el que el jugador esté.
      */
     public static final String PALABRA_CLAVE_TEXTO_HORA = "{HORA}";
+
     /**
      * La cadena de texto {@link PALABRA_CLAVE_TEXTO_HORA}, pero construida de
      * manera que puede ser interpretada con seguridad como una expresión regular.
@@ -43,11 +44,13 @@ final class TextoHora extends ParametroConfiguracion<String, String> {
      * La ruta en el fichero de configuración hacia este parámetro de configuración.
      */
     private static final String RUTA_CONFIG = "Texto de hora en reloj";
+
     /**
      * El identificador de este parámetro de configuración en el código y en el
      * comando asociado para cambiarlo.
      */
     private static final String ID_CONFIG = "textoHora";
+
     /**
      * El permiso necesario para ejecutar un comando que cambie el valor de este
      * parámetro de configuración.
@@ -58,17 +61,22 @@ final class TextoHora extends ParametroConfiguracion<String, String> {
      * La cadena de texto, sin los cambios aplicados por {@link procesarValor}.
      */
     private String valorSinProcesar;
+
     /**
      * El número máximo de caracteres que este valor puede tomar.
      */
     private final int CARACTERES_MAX = 75;
 
-    public TextoHora() throws IllegalArgumentException {
-        super(PluginTiempoReal.getProvidingPlugin(PluginTiempoReal.class), RUTA_CONFIG, ID_CONFIG, PERMISO_CONFIG);
+    public TextoHora() {
+        this(RUTA_CONFIG, ID_CONFIG, PERMISO_CONFIG);
+    }
+
+    protected TextoHora(String rutaConfig, String idCondig, String permisoConfig) {
+        super(PluginTiempoReal.getProvidingPlugin(PluginTiempoReal.class), rutaConfig, idCondig, permisoConfig);
     }
 
     @Override
-    protected String procesarValor(String nuevoValor) {
+    protected final String procesarValor(String nuevoValor) {
         String toret = ChatColor.translateAlternateColorCodes('&', nuevoValor);
 
         valorSinProcesar = nuevoValor;
@@ -84,7 +92,7 @@ final class TextoHora extends ParametroConfiguracion<String, String> {
     }
 
     @Override
-    public String getValorYaml() {
+    public final String getValorYaml() {
         return valorSinProcesar;
     }
 
@@ -97,7 +105,7 @@ final class TextoHora extends ParametroConfiguracion<String, String> {
      * @return {@inheritDoc}
      */
     @Override
-    public boolean valorValido(String otroValor) {
+    public final boolean valorValido(String otroValor) {
         boolean toret = false;
 
         if (otroValor != null && otroValor.length() <= CARACTERES_MAX) {

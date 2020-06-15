@@ -9,3 +9,7 @@ Mundos en los que sincronizar la hora:
 # El siguiente parámetro indica el texto que se mostrará a los jugadores en la barra de acciones cuando empuñen un reloj.
 # Admite códigos de formato (con el caracter &). Debe de contener el texto "{HORA}", que el plugin reemplazará por la hora actual del mundo en el que esté el jugador.
 Texto de hora en reloj: '&bEl reloj marca las &l{HORA}'
+
+# Este parámetro puede tomar los mismos valores que el anterior, y sirve para un propósito similar, salvo que
+# se utiliza para dimensiones que no tienen un ciclo día-noche.
+Texto de hora en reloj para dimensiones sin ciclo día-noche: '&7&l{HORA}'
