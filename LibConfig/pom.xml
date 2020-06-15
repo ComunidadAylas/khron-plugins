@@ -7,7 +7,7 @@
     <packaging>jar</packaging>
     <name>LibConfig</name>
     <description>Plugin que ofrece clases cuyo propósito es ofrecer funcionalidad de gestión de configuración de otros plugins, a un mayor nivel que el proporcionado por la API de Paper.</description>
-    
+
     <developers>
         <developer>
             <id>AlexTMjugador (AlexBlocks123)</id>
@@ -16,7 +16,7 @@
             <organizationUrl>https://www.guilded.gg/Comunidad-Aylas</organizationUrl>
         </developer>
     </developers>
-    
+
     <parent>
         <artifactId>Minecraft-Khron-Plugins</artifactId>
         <groupId>io.github.alextmjugador.khron</groupId>

@@ -18,9 +18,9 @@
 package io.github.alextmjugador.khron.gestorbarraaccion;
 
 import java.util.Arrays;
-import java.util.EmptyStackException;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -43,6 +43,7 @@ public final class PluginGestorBarraAccion extends JavaPlugin implements Listene
      * el plugin se activa.
      */
     private static final Map<Player, PilaMensajes> MENSAJES_PENDIENTES = new HashMap<>();
+
     /**
      * La instancia en ejecución del plugin.
      */
@@ -55,7 +56,7 @@ public final class PluginGestorBarraAccion extends JavaPlugin implements Listene
     public void onEnable() {
         PluginGestorBarraAccion.estePlugin = this;
     }
-    
+
     /**
      * Muestra un mensaje en la barra de acciones de un jugador.
      *
@@ -70,14 +71,14 @@ public final class PluginGestorBarraAccion extends JavaPlugin implements Listene
      */
     public static boolean mostrarMensaje(Plugin plugin, Player p, String msg, int duracion, byte prioridad) {
         boolean toret = false;
-        
+
         if (msg != null) {
             toret = mostrarArray(p, new Mensaje[]{ new Mensaje(msg, duracion, prioridad, plugin) });
         }
-        
+
         return toret;
     }
-    
+
     /**
      * Muestra un mensaje en la barra de acciones de un jugador, con la
      * prioridad predeterminada.
@@ -92,7 +93,7 @@ public final class PluginGestorBarraAccion extends JavaPlugin implements Listene
     public static boolean mostrarMensaje(Plugin plugin, Player p, String msg, int duracion) {
         return mostrarMensaje(plugin, p, msg, duracion, Mensaje.PRIORIDAD_PREDET);
     }
-    
+
     /**
      * Muestra uno o varios mensajes en la barra de acciones de un jugador, con
      * duración y prioridades predeterminadas.
@@ -106,7 +107,7 @@ public final class PluginGestorBarraAccion extends JavaPlugin implements Listene
     public static boolean mostrarMensaje(Plugin plugin, Player p, String... msg) {
         boolean toret = false;
         Mensaje[] mensajes;
-        
+
         if (msg != null) {
             // Crear objetos Mensaje a partir de las cadenas de texto
             mensajes = new Mensaje[msg.length];
@@ -116,10 +117,10 @@ public final class PluginGestorBarraAccion extends JavaPlugin implements Listene
 
             toret = mostrarArray(p, mensajes);
         }
-        
+
         return toret;
     }
-    
+
     /**
      * Borra todos los mensajes pendientes de mostrarle a un jugador en la barra
      * de acciones. El jugador seguirá viendo el mensaje actual hasta que su
@@ -133,17 +134,17 @@ public final class PluginGestorBarraAccion extends JavaPlugin implements Listene
      * falso en caso contrario.
      */
     public static boolean borrarMensajes(Player p) {
-        boolean toret = MENSAJES_PENDIENTES.containsKey(p);
-        
+        PilaMensajes pila = MENSAJES_PENDIENTES.get(p);
+        boolean toret = pila != null;
+
         if (toret) {
-            PilaMensajes pila = MENSAJES_PENDIENTES.get(p);
             toret = pila.mostrando();
             pila.empty();
         }
-        
+
         return toret;
     }
-    
+
     /**
      * Borra los mensajes pendientes de mostrarle a un jugador en la barra de
      * acciones creados por un determinado plugin. El jugador seguirá viendo el
@@ -158,16 +159,16 @@ public final class PluginGestorBarraAccion extends JavaPlugin implements Listene
      * falso en caso contrario.
      */
     public static boolean borrarMensajes(Plugin plugin, Player p) {
-        boolean toret = MENSAJES_PENDIENTES.containsKey(p);
-        
+        PilaMensajes pila = MENSAJES_PENDIENTES.get(p);
+        boolean toret = pila != null;
+
         if (toret) {
-            PilaMensajes pila = MENSAJES_PENDIENTES.get(p);
             toret = pila.empty(plugin) > 0;
         }
-        
+
         return toret;
     }
-    
+
     /**
      * Inserta los mensajes contenidos en el array en la pila de mensajes pendientes del jugador especificado.
      * @param p El jugador al que insertarle los mensajes en la pila.
@@ -177,38 +178,36 @@ public final class PluginGestorBarraAccion extends JavaPlugin implements Listene
     private static boolean mostrarArray(Player p, Mensaje[] arr) {
         boolean toret = false;
         PilaMensajes pila;
-        
+
         if (estePlugin != null) {
             pila = MENSAJES_PENDIENTES.get(p);
+
             if (pila == null) {
                 pila = new PilaMensajes();
                 MENSAJES_PENDIENTES.put(p, pila);
             }
 
-            try {
-                pila.push(Arrays.asList(arr));
-                if (!pila.mostrando()) {
-                    pila.mostrar(p, estePlugin);
-                }
-                toret = true;
-            } catch (IllegalArgumentException | EmptyStackException exc) {
-                // Ignorar detalles del error
+            pila.push(Arrays.asList(arr));
+            if (!pila.mostrando()) {
+                pila.mostrar(p, estePlugin);
             }
+
+            toret = true;
         }
-        
+
         return toret;
     }
-    
+
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent e) {
         borrarJugadorEvento(e);
     }
-    
+
     @EventHandler
     public void onPlayerKick(PlayerKickEvent e) {
         borrarJugadorEvento(e);
     }
-    
+
     /**
      * Reacciona a un evento de expulsión o desconexión de un jugador, parando y
      * borrando su pila de mensajes pendientes.

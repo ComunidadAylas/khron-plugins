@@ -17,10 +17,11 @@
  */
 package io.github.alextmjugador.khron.gestorbarraaccion;
 
+import java.util.ArrayList;
 import java.util.EmptyStackException;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Stack;
+
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -41,17 +42,17 @@ final class PilaMensajes {
     /**
      * La pila que contiene los mensajes a mostrar.
      */
-    private final Stack<Mensaje> pila;
+    private final List<Mensaje> pila;
     /**
      * La tarea de Bukkit encargada de mostrar los mensajes de la pila.
      */
     private BukkitTask tareaMostrarSig;
-    
+
     /**
      * Crea una nueva pila de mensajes vacía.
      */
     public PilaMensajes() {
-        this.pila = new Stack<>();
+        this.pila = new ArrayList<>();
         this.tareaMostrarSig = null;
     }
 
@@ -65,25 +66,23 @@ final class PilaMensajes {
         if (msg == null) {
             throw new IllegalArgumentException("No se puede insertar un mensaje nulo a la pila");
         }
-        
-        synchronized (pila) {
-            // Algoritmo eficiente para obtener posición de insertado basado en búsqueda binaria
-            int i = 0; // Tras el while que sigue, toma el valor de la posición donde insertar el nuevo objeto
-            int j = pila.size() - 1;
 
-            while (i <= j) {
-                int k = (i + j) / 2;
-                if (pila.get(k).compareTo(msg) < 0) {  // (La operación get se ejecuta en tiempo constante, pues el stack se implementa usando un vector)
-                    // El mensaje en k tiene menos prioridad que el nuevo. El nuevo debe insertarse después
-                    i = k + 1;
-                } else {
-                    // El mensaje en k tiene mayor o igual prioridad que el nuevo. Debe de insertarse antes
-                    j = k - 1;
-                }
+        // Algoritmo eficiente para obtener posición de insertado basado en búsqueda binaria
+        int i = 0; // Tras el while que sigue, toma el valor de la posición donde insertar el nuevo objeto
+        int j = pila.size() - 1;
+
+        while (i <= j) {
+            int k = (i + j) / 2;
+            if (pila.get(k).compareTo(msg) < 0) {
+                // El mensaje en k tiene menos prioridad que el nuevo. El nuevo debe insertarse después
+                i = k + 1;
+            } else {
+                // El mensaje en k tiene mayor o igual prioridad que el nuevo. Debe de insertarse antes
+                j = k - 1;
             }
-
-            pila.add(i, msg); // (Se ejecuta en tiempo lineal)
         }
+
+        pila.add(i, msg); // (Se ejecuta en tiempo lineal)
     }
 
     /**
@@ -96,21 +95,20 @@ final class PilaMensajes {
         if (mensajes == null) {
             throw new IllegalArgumentException("No se pueden insertar elementos de una lista nula a la pila");
         }
+
         for (Mensaje msg : mensajes) {
             push(msg);
         }
     }
-    
+
     /**
      * Vacía la pila y para cualquier tarea para visualizar mensajes de ella.
      */
     public void empty() {
-        synchronized (pila) {
-            parar();
-            pila.removeAllElements();
-        }
+        parar();
+        pila.clear();
     }
-    
+
     /**
      * Vacía la pila de mensajes generados por un determinado plugin. No afecta
      * a la visualización de los mensajes que puedan quedar.
@@ -121,23 +119,23 @@ final class PilaMensajes {
     public int empty(Plugin plugin) {
         int toret = 0;
         Iterator<Mensaje> iter;
-        
+
         if (plugin != null) {
-            synchronized (pila) {
-                iter = pila.iterator();
-                while (iter.hasNext()) { // (Complejidad lineal)
-                    Mensaje actual = iter.next();
-                    if (actual.getPlugin().equals(plugin)) {
-                        iter.remove();
-                        ++toret;
-                    }
+            iter = pila.iterator();
+
+            while (iter.hasNext()) {
+                Mensaje actual = iter.next();
+
+                if (actual.getPlugin().equals(plugin)) {
+                    iter.remove();
+                    ++toret;
                 }
             }
         }
-        
+
         return toret;
     }
-    
+
     /**
      * Muestra todos los mensajes en esta pila. Si ya se están mostrando,
      * sobreescribe la tarea interna que se encarga de ello. Esto muestra el
@@ -155,17 +153,18 @@ final class PilaMensajes {
      * servidor.
      */
     public void mostrar(Player jugador, Plugin plugin) throws EmptyStackException, IllegalArgumentException {
-        synchronized (pila) {
-            if (pila.isEmpty()) {
-                throw new EmptyStackException();
-            }
+        if (pila.isEmpty()) {
+            throw new EmptyStackException();
         }
+
         if (jugador == null || !jugador.isOnline()) {
             throw new IllegalArgumentException("No se pueden mostrar pilas de mensajes a un jugador nulo o desconectado");
         }
+
         if (plugin == null || !plugin.isEnabled()) {
             throw new IllegalArgumentException("No se puede mostrar mensajes desde un plugin que no se ejecuta");
         }
+
         if (mostrando()) {
             // Cancelar tarea actual
             parar();
@@ -173,7 +172,7 @@ final class PilaMensajes {
 
         tareaMostrarSig = new MostrarSig(jugador, plugin).runTask(plugin);
     }
-    
+
     /**
      * Comprueba si se está mostrando la pila o no.
      *
@@ -226,22 +225,19 @@ final class PilaMensajes {
          */
         @Override
         public void run() {
-            try {
-                // Toma el siguiente mensaje a mostrar
-                synchronized (pila) {
-                    Mensaje msg;
-                    if (pila.isEmpty()) {
-                        tareaMostrarSig = null;
-                    } else {
-                        msg = pila.pop();
-                        // Se lo muestra al jugador y programa una tarea para el siguiente, si hay más
-                        msg.mostrar(jugador);
-                        tareaMostrarSig = new MostrarSig(jugador, plugin).runTaskLater(plugin, (int) msg.getDuracion() / 50); // Dividir entre 50 = / 1000 y * 20
-                    }
-                }
-            } catch (IllegalArgumentException exc) {
-                // Si se produce algún error mostrando el mensaje, no intentar mostrar más
-                parar();
+            // Toma el siguiente mensaje a mostrar
+            Mensaje msg;
+            int tamPila = pila.size();
+
+            if (tamPila <= 0) {
+                tareaMostrarSig = null;
+            } else {
+                msg = pila.remove(tamPila - 1);
+                // Se lo muestra al jugador y programa una tarea para el siguiente, si hay más
+                msg.mostrar(jugador);
+
+                tareaMostrarSig = new MostrarSig(jugador, plugin)
+                    .runTaskLater(plugin, (int) msg.getDuracion() / 50); // Dividir entre 50 = / 1000 y * 20
             }
         }
     }

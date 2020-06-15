@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -58,15 +59,18 @@ final class RelojExtendido implements Listener {
      * Los jugadores que están viendo un reloj en el instante de tiempo presente.
      */
     private final Set<Player> JUGADORES_RELOJ;
+
     /**
      * Guarda una referencia al plugin que contiene esta clase; es decir, este
      * plugin.
      */
+
     private final PluginTiempoReal estePlugin = PluginTiempoReal.getPlugin(PluginTiempoReal.class);
     /**
      * Tarea que se encarga de mostrar el display de la hora a los jugadores
      * interesados.
      */
+
     private BukkitTask tareaMostrarHora = null;
     /**
      * El número de ticks que han de pasar entre ejecuciones consecutivas de la
@@ -76,12 +80,14 @@ final class RelojExtendido implements Listener {
      * un display de hora actualizado, teniendo en cuenta que 1 minuto en Minecraft
      * = 16,6 ticks = 0,83 s.
      */
+
     private static final short TICKS_TAREA_MOSTRAR_HORA = 8;
     /**
      * El número de ciclos (ejecuciones) de la tarea de mostrar el display de la
      * hora durante los que se mostrará al jugador como mínimo, independientemente
      * de si el jugador deja de empuñar el reloj o no.
      */
+
     private static final byte CICLOS_TAREA_MOSTRAR_HORA = 4;
     /**
      * El tiempo mínimo que permanecerá un display de la hora en la pantalla de un
@@ -89,6 +95,7 @@ final class RelojExtendido implements Listener {
      * automáticamente a partir de atributos anteriores, así que no se debe de
      * editar manualmente.
      */
+
     private static final int TIEMPO_DISPLAY = (TICKS_TAREA_MOSTRAR_HORA / 2) * 100 * CICLOS_TAREA_MOSTRAR_HORA;
     /**
      * Guarda una referencia al primer (y único) objeto creado de esta clase.
@@ -108,7 +115,7 @@ final class RelojExtendido implements Listener {
      * los mundos deseados. Para ello, registra los eventos manejados por esta clase
      * con el plugin, y hace que los jugadores que empuñen un reloj inicialmente
      * vean la hora.
-     * 
+     *
      * @return El reloj extendido descrito.
      */
     public static RelojExtendido get() {
@@ -118,7 +125,7 @@ final class RelojExtendido implements Listener {
             // Al poner en marcha el plugin, podría haber jugadores a los que debamos de
             // mostrar la hora
             for (Player p : getServer().getOnlinePlayers()) {
-                re.new ComprobarReloj(p).runTask(re.estePlugin);
+                re.actualizarDisplayHora(p);
             }
 
             getPluginManager().registerEvents(re, re.estePlugin);
@@ -136,11 +143,13 @@ final class RelojExtendido implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onPlayerEvent(PlayerItemHeldEvent event) {
         Player p = event.getPlayer();
-        PlayerInventory pinv = p != null ? p.getInventory() : null;
-        ItemStack stack = pinv != null ? pinv.getItem(event.getNewSlot()) : null;
+        PlayerInventory pinv = p.getInventory();
+        ItemStack stack = pinv.getItem(event.getNewSlot());
 
-        if ((stack != null && stack.getType().equals(Material.CLOCK))
-                || (pinv != null && pinv.getItemInOffHand().getType().equals(Material.CLOCK))) {
+        if (
+            (stack != null && Material.CLOCK.equals(stack.getType())) ||
+            Material.CLOCK.equals(pinv.getItemInOffHand().getType())
+        ) {
             mostrarDisplayHora(p);
         } else {
             ocultarDisplayHora(p);
@@ -155,11 +164,7 @@ final class RelojExtendido implements Listener {
      */
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onPlayerEvent(PlayerJoinEvent event) {
-        Player p = event.getPlayer();
-
-        if (p != null) {
-            new ComprobarReloj(p).runTask(estePlugin);
-        }
+        actualizarDisplayHora(event.getPlayer());
     }
 
     /**
@@ -170,11 +175,7 @@ final class RelojExtendido implements Listener {
      */
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onPlayerEvent(PlayerQuitEvent event) {
-        Player p = event.getPlayer();
-
-        if (p != null) {
-            ocultarDisplayHora(p);
-        }
+        ocultarDisplayHora(event.getPlayer());
     }
 
     /**
@@ -185,11 +186,7 @@ final class RelojExtendido implements Listener {
      */
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onPlayerEvent(PlayerKickEvent event) {
-        Player p = event.getPlayer();
-
-        if (p != null) {
-            ocultarDisplayHora(p);
-        }
+        ocultarDisplayHora(event.getPlayer());
     }
 
     /**
@@ -219,7 +216,12 @@ final class RelojExtendido implements Listener {
             case UNKNOWN:
                 // Todas estas actividades pueden provocar un cambio en el ítem que se empuña en
                 // alguna mano
-                new ComprobarReloj(p).runTask(estePlugin);
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        actualizarDisplayHora(p);
+                    }
+                }.runTask(estePlugin);
                 break;
             default:
                 break;
@@ -238,7 +240,14 @@ final class RelojExtendido implements Listener {
         Player p = (event.getWhoClicked() instanceof Player) ? (Player) event.getWhoClicked() : null;
 
         if (p != null) {
-            new ComprobarReloj(p).runTask(estePlugin);
+            // No sabemos cuál será el resultado exacto de este evento ahora mismo,
+            // así que retrasamos la comprobación al siguiente tick
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    actualizarDisplayHora(p);
+                }
+            }.runTask(estePlugin);
         }
     }
 
@@ -252,8 +261,13 @@ final class RelojExtendido implements Listener {
     public void onInventoryInteractEvent(EntityPickupItemEvent event) {
         Player p = (event.getEntity() instanceof Player) ? (Player) event.getEntity() : null;
 
-        if (p != null) {
-            new ComprobarReloj(p).runTask(estePlugin);
+        if (p != null && Material.CLOCK.equals(event.getItem().getItemStack().getType())) {
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    actualizarDisplayHora(p);
+                }
+            }.runTask(estePlugin);
         }
     }
 
@@ -265,11 +279,22 @@ final class RelojExtendido implements Listener {
      */
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onInventoryInteractEvent(PlayerDropItemEvent event) {
-        Player p = event.getPlayer();
+        actualizarDisplayHora(event.getPlayer());
+    }
 
-        if (p != null) {
-            new ComprobarReloj(p).runTask(estePlugin);
-        }
+    /**
+     * Comprueba si a un jugador le corresponde ver la hora en pantalla.
+     *
+     * @param p El jugador a comprobar.
+     * @return Verdadero si le corresponde, falso en otro caso.
+     */
+    private boolean leCorrespondeVerDisplayHora(Player p) {
+        PlayerInventory pinv = p.isOnline() ? p.getInventory() : null;
+
+        return pinv != null && !p.isDead() && (
+            pinv.getItemInMainHand().getType().equals(Material.CLOCK) ||
+            pinv.getItemInOffHand().getType().equals(Material.CLOCK)
+        );
     }
 
     /**
@@ -279,10 +304,8 @@ final class RelojExtendido implements Listener {
      * @param p El jugador a añadir.
      */
     private void mostrarDisplayHora(Player p) {
-        JUGADORES_RELOJ.add(p);
-
         // Si somos el primer jugador en ver la hora, poner tarea en marcha
-        if (JUGADORES_RELOJ.size() == 1) {
+        if (p != null && JUGADORES_RELOJ.add(p) && tareaMostrarHora == null) {
             tareaMostrarHora = new MostrarHora().runTaskTimer(estePlugin, 0, TICKS_TAREA_MOSTRAR_HORA);
         }
     }
@@ -304,47 +327,16 @@ final class RelojExtendido implements Listener {
     }
 
     /**
-     * Tarea que decide, en última instancia, si un jugador debe de poder ver la
-     * hora de su reloj o no.
+     * Le muestra u oculta el display de hora a un jugador, dependiendo de si le
+     * corresponde verlo o no.
+     *
+     * @param p El jugador cuyo estado de muestra de display actualizar.
      */
-    private class ComprobarReloj extends BukkitRunnable {
-        /**
-         * El jugador a comprobar si puede ver la hora.
-         */
-        private final Player p;
-
-        /**
-         * Crea una nueva tarea que decide si un jugador puede ver la hora.
-         *
-         * @param p El jugador a comprobar si puede ver la hora.
-         * @throws IllegalArgumentException Si el jugador pasado como parámetro es nulo.
-         */
-        public ComprobarReloj(Player p) throws IllegalArgumentException {
-            if (p == null) {
-                throw new IllegalArgumentException("No se puede comprobar el reloj de un jugador nulo");
-            }
-            this.p = p;
-        }
-
-        /**
-         * Ejecuta la comprobación y decisión de si un jugador debe de poder ver la hora
-         * de su reloj o no.
-         */
-        @Override
-        public void run() {
-            PlayerInventory pinv;
-            if (p.isOnline()) {
-                pinv = p.getInventory();
-
-                if (pinv.getItemInMainHand().getType().equals(Material.CLOCK)
-                        || pinv.getItemInOffHand().getType().equals(Material.CLOCK)) {
-                    mostrarDisplayHora(p);
-                } else {
-                    ocultarDisplayHora(p);
-                }
-            } else {
-                ocultarDisplayHora(p);
-            }
+    private void actualizarDisplayHora(Player p) {
+        if (leCorrespondeVerDisplayHora(p)) {
+            mostrarDisplayHora(p);
+        } else {
+            ocultarDisplayHora(p);
         }
     }
 
@@ -368,23 +360,13 @@ final class RelojExtendido implements Listener {
 
             while (iter.hasNext()) {
                 Player p = iter.next();
-                PlayerInventory pinv = p.getInventory();
-
-                assert (p != null && p.isOnline());
 
                 // Aunque manejamos los eventos disponibles que implican que un jugador deje de
                 // tener un reloj en la mano, hay circunstancias que no podemos detectar
                 // con la API actual de Paper (p. ej., ser objeto de un /clear). Así pues, es
                 // necesaria esta comprobación para evitar incongruencias en esos casos
-                if (!pinv.getItemInMainHand().getType().equals(Material.CLOCK)
-                        && !pinv.getItemInOffHand().getType().equals(Material.CLOCK)) {
-                    try {
-                        iter.remove();
-                    } catch (UnsupportedOperationException exc) {
-                        // Para una lógica de aplicación más simple, asumimos que la implementación
-                        // de iterador usada soporta la operación remove
-                        assert (false);
-                    }
+                if (!leCorrespondeVerDisplayHora(p)) {
+                    iter.remove();
                 } else {
                     World w = p.getWorld();
                     byte h = ash.getHora(w);
@@ -401,10 +383,10 @@ final class RelojExtendido implements Listener {
                 }
             }
 
-            // Cancelar la tarea de muestra de hora si nos hemos quedado sin jugadores a los
-            // que mostrarle la hora
+            // Puede ocurrir que eliminemos jugadores durante la iteración.
+            // En ese caso, debemos de cancelar la ejecución de la tarea si nos quedamos sin jugadores
             if (JUGADORES_RELOJ.isEmpty()) {
-                this.cancel();
+                cancel();
                 RelojExtendido.this.tareaMostrarHora = null;
             }
         }

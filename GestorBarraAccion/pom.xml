@@ -7,7 +7,7 @@
     <packaging>jar</packaging>
     <name>GestorBarraAccion</name>
     <description>Plugin utilitario, que permite abstraerse a otros plugins de si se muestra texto en la barra de acciones o no. Provee prioridades de mensajes en dicha barra.</description>
-    
+
     <developers>
         <developer>
             <id>AlexTMjugador (AlexBlocks123)</id>
@@ -16,20 +16,20 @@
             <organizationUrl>http://aylas.foro-activo.com/</organizationUrl>
         </developer>
     </developers>
-    
+
     <parent>
         <artifactId>Minecraft-Khron-Plugins</artifactId>
         <groupId>io.github.alextmjugador.khron</groupId>
-        <version>1.2.0</version>
+        <version>[1.1.0,2.0.0)</version>
     </parent>
-    
+
     <repositories>
         <repository>
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
         </repository>
     </repositories>
-    
+
     <dependencies>
         <dependency>
             <groupId>com.github.ConnorLinfoot</groupId>

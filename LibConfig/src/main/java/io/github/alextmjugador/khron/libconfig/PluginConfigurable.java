@@ -51,7 +51,7 @@ public class PluginConfigurable extends JavaPlugin {
                 }
             }
         } catch (IllegalArgumentException | ClassCastException exc) {
-            this.getLogger().severe("La configuración del plugin es inválida. Se detiene su ejecución. Detalles:");
+            getLogger().severe("La configuración del plugin es inválida. Se detiene su ejecución. Detalles:");
             getServer().getLogger().severe(exc.getMessage());
             getPluginManager().disablePlugin(this);
         }

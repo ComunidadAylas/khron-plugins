@@ -3,11 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.alextmjugador.khron</groupId>
     <artifactId>TiempoReal</artifactId>
-    <version>3.2.0-SNAPSHOT</version>
+    <version>4.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>TiempoReal</name>
     <description>Plugin para sincronizar la hora real con la del juego. Añade la visualización de la hora exacta a ítems de relojes.</description>
-    
+
     <developers>
         <developer>
             <id>AlexTMjugador (AlexBlocks123)</id>
@@ -16,13 +16,13 @@
             <organizationUrl>https://www.guilded.gg/Comunidad-Aylas</organizationUrl>
         </developer>
     </developers>
-    
+
     <parent>
         <artifactId>Minecraft-Khron-Plugins</artifactId>
         <groupId>io.github.alextmjugador.khron</groupId>
         <version>[1.1.0,2.0.0)</version>
     </parent>
-    
+
     <dependencies>
         <dependency>
             <groupId>io.github.alextmjugador.khron</groupId>

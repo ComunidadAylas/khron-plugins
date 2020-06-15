@@ -18,6 +18,7 @@
 package io.github.alextmjugador.khron.gestorbarraaccion;
 
 import com.connorlinfoot.actionbarapi.ActionBarAPI;
+
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
@@ -68,9 +69,11 @@ final class Mensaje implements Comparable<Mensaje> {
         if (duracion < 100) {
             throw new IllegalArgumentException("La duración es menor a 100 ms");
         }
+
         if (plugin == null || !plugin.isEnabled()) {
             throw new IllegalArgumentException("El plugin es nulo o está desactivado");
         }
+
         this.mensaje = mensaje;
         this.duracion = duracion;
         this.prioridad = prioridad;
@@ -152,6 +155,7 @@ final class Mensaje implements Comparable<Mensaje> {
         if (p == null || !p.isOnline()) {
             throw new IllegalArgumentException("No se puede mostrar un mensaje a un jugador nulo o desconectado");
         }
+
         // Duración dividida entre 50 para pasar a ticks
         // Se le resta uno debido a que la API envía un mensaje en blanco un tick después de que expire la duración, lo cual da problemas visuales al jugador
         ActionBarAPI.sendActionBar(p, getMensaje(), (int) Math.ceil(getDuracion() / 50) - 1);

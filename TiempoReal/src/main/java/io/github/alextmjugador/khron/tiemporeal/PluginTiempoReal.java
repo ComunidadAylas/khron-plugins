@@ -81,8 +81,10 @@ public final class PluginTiempoReal extends PluginConfigurable {
         leerParametrosConfiguracion(cfgMundosSincronizacion, cfgTextoHora);
 
         // Registrar comandos del plugin
-        TabExecutor ejecutorComandos = new ComandosConfiguracion(COMANDO_ESTABLECER_CONFIG, COMANDO_RECARGAR_CONFIG,
-                cfgMundosSincronizacion, cfgTextoHora);
+        TabExecutor ejecutorComandos = new ComandosConfiguracion(
+            COMANDO_ESTABLECER_CONFIG, COMANDO_RECARGAR_CONFIG,
+            cfgMundosSincronizacion, cfgTextoHora
+        );
         getCommand(COMANDO_ESTABLECER_CONFIG).setExecutor(ejecutorComandos);
         getCommand(COMANDO_ESTABLECER_CONFIG).setTabCompleter(ejecutorComandos);
         getCommand(COMANDO_RECARGAR_CONFIG).setExecutor(ejecutorComandos);
@@ -111,7 +113,7 @@ public final class PluginTiempoReal extends PluginConfigurable {
     /**
      * Obtiene el valor actual del parámetro de configuración que indica el texto a
      * mostrar cuando un jugador empuña un reloj.
-     * 
+     *
      * @return El devandicho valor del parámetro de configuración. Puede ser nulo si
      *         todavía no se ha inicializado la configuración del plugin.
      */
@@ -122,7 +124,7 @@ public final class PluginTiempoReal extends PluginConfigurable {
     /**
      * Obtiene el valor actual del parámetro de configuración que indica los mundos
      * en los que sincronizar la hora con la del servidor.
-     * 
+     *
      * @return El devandicho valor del parámetro de configuración. Puede ser nulo si
      *         todavía no se ha inicializado la configuración del plugin.
      */
