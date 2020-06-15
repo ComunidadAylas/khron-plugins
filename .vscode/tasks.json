@@ -8,7 +8,6 @@
             "type": "shell",
             "command": "scripts/ServidorPaper.sh",
             "group": "test",
-            "isBackground": true,
             "promptOnClose": true,
             "presentation": {
                 "echo": true,
