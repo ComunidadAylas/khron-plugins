@@ -25,7 +25,7 @@ import org.bukkit.plugin.Plugin;
  *
  * @param <E> El tipo de dato del parámetro de configuración.
  * @param <T> El tipo de valor almacenado en el fichero de configuración YAML
- *        para este parámetro.
+ *            para este parámetro.
  * @author AlexTMjugador
  */
 public abstract class ParametroConfiguracionNotificado<E, T> extends ParametroConfiguracion<E, T> {
@@ -41,13 +41,16 @@ public abstract class ParametroConfiguracionNotificado<E, T> extends ParametroCo
      * @param manejadorCambio El objeto que se encargará de manejar el evento de
      *                        cambio de valor del parámetro de configuración.
      */
-    public ParametroConfiguracionNotificado(Plugin plugin, String rutaConfiguracion, String id, String permiso,
-            NotificableCambioConfiguracion<E> manejadorCambio) throws IllegalArgumentException {
+    public ParametroConfiguracionNotificado(
+        Plugin plugin, String rutaConfiguracion, String id, String permiso,
+        NotificableCambioConfiguracion<E> manejadorCambio
+    ) {
         super(plugin, rutaConfiguracion, id, permiso);
 
         if (manejadorCambio == null) {
             throw new IllegalArgumentException(
-                    "El objeto que maneja el evento de cambio de valor de este parámetro de configuración es nulo");
+                "El objeto que maneja el evento de cambio de valor de este parámetro de configuración es nulo"
+            );
         }
 
         this.manejadorCambio = manejadorCambio;

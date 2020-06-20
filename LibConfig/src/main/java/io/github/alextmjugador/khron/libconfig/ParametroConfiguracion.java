@@ -17,6 +17,8 @@
  */
 package io.github.alextmjugador.khron.libconfig;
 
+import java.util.Objects;
+
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 
@@ -25,7 +27,7 @@ import org.bukkit.plugin.Plugin;
  *
  * @param <E> El tipo del valor almacenado en memoria por este parámetro.
  * @param <T> El tipo de valor almacenado en el fichero de configuración YAML
- *        para este parámetro.
+ *            para este parámetro.
  * @author AlexTMjugador
  */
 public abstract class ParametroConfiguracion<E, T> {
@@ -53,25 +55,26 @@ public abstract class ParametroConfiguracion<E, T> {
     private E valor = null;
 
     /**
-     * Crea un nuevo parámetro de configuración con su plugin asociado, la ruta en
-     * el fichero de configuración, el nombre del argumento para el comando que
-     * permite cambiarlo y el permiso necesario para realizarle modificaciones.
+     * Crea un nuevo parámetro de configuración con su plugin asociado, la ruta
+     * en el fichero de configuración, el nombre del argumento para el comando
+     * que permite cambiarlo y el permiso necesario para realizarle
+     * modificaciones.
      *
      * @param plugin            El plugin al que pertenece este parámetro de
      *                          configuración.
      * @param rutaConfiguracion La ruta de este parámetro en el archivo de
      *                          configuración del plugin.
-     * @param id                La identificación de este parámetro de configuración
-     *                          en el comando para cambiarlo del plugin.
+     * @param id                La identificación de este parámetro de
+     *                          configuración en el comando para cambiarlo del
+     *                          plugin.
      * @param permiso           El nombre del permiso que un emisor de comandos
      *                          necesitará tener para cambiar el parámetro.
      * @throws IllegalArgumentException Si alguno de los argumentos
      *                                  {@code rutaConfiguracion},
-     *                                  {@code nombreCodigo} y {@code permiso} es
-     *                                  nulo.
+     *                                  {@code nombreCodigo} y {@code permiso}
+     *                                  es nulo.
      */
-    public ParametroConfiguracion(Plugin plugin, String rutaConfiguracion, String id, String permiso)
-            throws IllegalArgumentException {
+    public ParametroConfiguracion(Plugin plugin, String rutaConfiguracion, String id, String permiso) {
         if (plugin == null || rutaConfiguracion == null || id == null || permiso == null) {
             throw new IllegalArgumentException("Algún parámetro es nulo, cuando no debería de serlo");
         }
@@ -189,36 +192,44 @@ public abstract class ParametroConfiguracion<E, T> {
     }
 
     /**
-     * Lee el valor guardado en la configuración del plugin para este parámetro, e
-     * inicializa el valor asociado a este parámetro de configuración a partir de lo
-     * leído desde el fichero de configuración. Cabe destacar que este método por si
-     * solo no recarga la configuración asociada al plugin en memoria por Paper.
+     * Lee el valor guardado en la configuración del plugin para este parámetro,
+     * e inicializa el valor asociado a este parámetro de configuración a partir
+     * de lo leído desde el fichero de configuración. Cabe destacar que este
+     * método por si solo no recarga la configuración asociada al plugin en
+     * memoria por Paper.
+     * <p>
+     * La implementación predeterminada de este método asume que el tipo de dato
+     * cargado en memoria es el mismo que el que se guarda en el fichero YAML.
+     * </p>
      * 
-     * @throws IllegalArgumentException Si el valor guardado en la configuración del
-     *                                  plugin para este parámetro no es válido.
+     * @throws IllegalArgumentException Si el valor guardado en la configuración
+     *                                  del plugin para este parámetro no es
+     *                                  válido.
      */
-    public void leer() throws IllegalArgumentException {
+    public void leer() {
         @SuppressWarnings("unchecked")
         E toset = (E) getPlugin().getConfig().get(rutaConfiguracion, null);
 
         if (!setValor(toset, false)) {
-            throw new IllegalArgumentException("El valor de configuración para la clave \"" + getRutaConfiguracion()
-                    + "\" no es válido (valor leído: " + (toset == null ? "null" : toset.toString()) + ")");
+            throw new IllegalArgumentException(
+                "El valor de configuración para la clave \"" + getRutaConfiguracion() +
+                "\" no es válido (valor leído: " + Objects.toString(toset) + ")"
+            );
         }
     }
 
     /**
      * Establece el valor de este parámetro de configuración, si es válido. Se
      * utiliza {@link valorValido} para determinar la validez del nuevo valor, y
-     * {@link procesarValor} para preprocesar el valor que tomará el atributo de la
-     * clase que lo almacena.
+     * {@link procesarValor} para preprocesar el valor que tomará el atributo de
+     * la clase que lo almacena.
      *
      * @param nuevoValor    El valor a establecer.
      * @param guardarADisco Verdadero si se debe de considerar la posibilidad de
      *                      guardar el nuevo valor a memoria secundaria si ha
      *                      cambiado, falso en caso contrario.
-     * @return Verdadero si el nuevo valor se pudo establecer por ser válido, falso
-     *         en caso contrario.
+     * @return Verdadero si el nuevo valor se pudo establecer por ser válido,
+     *         falso en caso contrario.
      */
     final protected boolean setValor(E nuevoValor, boolean guardarADisco) {
         E valorAnterior = getValor();
@@ -259,16 +270,17 @@ public abstract class ParametroConfiguracion<E, T> {
     }
 
     /**
-     * Procesa el valor que se le pasa como parámetro, dejándolo listo para ser el
-     * valor guardado en las estructuras de datos internas del plugin. Este método
-     * solo debe de ser llamado internamente desde su clase, no desde otras (las
-     * sobreescrituras de las subclases pueden asumir tal condición). Entonces,
-     * cuando es invocado, se ha garantizado que {@code nuevoValor} es válido y
-     * diferente al actual, y el valor devuelto será asignado como nuevo valor del
-     * parámetro de configuración.
+     * Procesa el valor que se le pasa como parámetro, dejándolo listo para ser
+     * el valor guardado en las estructuras de datos internas del plugin. Este
+     * método solo debe de ser llamado internamente desde su clase, no desde
+     * otras (las sobreescrituras de las subclases pueden asumir tal condición).
+     * Entonces, cuando es invocado, se ha garantizado que {@code nuevoValor} es
+     * válido y diferente al actual, y el valor devuelto será asignado como
+     * nuevo valor del parámetro de configuración.
      *
      * @param nuevoValor El valor a procesar.
-     * @return El susodicho valor, procesado.
+     * @return El susodicho valor, procesado. La implementación predeterminada
+     *         de este método simplemente devuelve el valor que recibe.
      */
     protected E procesarValor(E nuevoValor) {
         return nuevoValor;
@@ -277,15 +289,21 @@ public abstract class ParametroConfiguracion<E, T> {
     /**
      * Establece el valor de este parámetro de configuración, si es válido,
      * convirtiéndolo antes de {@link String} al tipo de dato que se use para
-     * almacenar el valor. Se recomienda que las implementaciones utilicen setValor
-     * para establecer el valor tras la conversión que sea necesaria. Este método es
-     * usado para modificar el valor del parámetro de configuración a partir de lo
-     * especificado por un usuario en un comando.
+     * almacenar el valor. Se recomienda que las implementaciones utilicen
+     * setValor para establecer el valor tras la conversión que sea necesaria.
+     * Este método es usado para modificar el valor del parámetro de
+     * configuración a partir de lo especificado por un usuario en un comando.
      *
-     * @param nuevoValor El valor a establecer, como una cadena de texto que será
-     *                   convertida al tipo de dato usado.
-     * @return Verdadero si el nuevo valor se pudo establecer por ser válido, falso
-     *         en caso contrario.
+     * @param nuevoValor El valor a establecer, como una cadena de texto que
+     *                   será convertida al tipo de dato usado.
+     * @return Verdadero si el nuevo valor se pudo establecer por ser válido,
+     *         falso en caso contrario. La implementación predeterminada de este
+     *         método establece directamente el valor que recibe, para lo que el
+     *         parámetro de configuración debe de tener una cadena de texto en
+     *         sus parámetros de tipos.
      */
-    public abstract boolean setValor(String nuevoValor);
+    @SuppressWarnings("unchecked")
+    public boolean parsearValor(String nuevoValor) {
+        return setValor((E) nuevoValor, false);
+    }
 }

@@ -19,13 +19,14 @@ package io.github.alextmjugador.khron.libconfig;
 
 import static org.bukkit.Bukkit.getLogger;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.command.RemoteConsoleCommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 
@@ -66,12 +67,15 @@ public final class ComandosConfiguracion implements TabExecutor {
      * @throws IllegalArgumentException Si alguno de los parámetros pasados al
      *                                  constructor es nulo.
      */
-    public ComandosConfiguracion(String comandoEstablecer, String comandoRecargar,
-            ParametroConfiguracion<?, ?>... params) throws IllegalArgumentException {
+    public ComandosConfiguracion(
+        String comandoEstablecer, String comandoRecargar, ParametroConfiguracion<?, ?>... params
+    ) {
         if (comandoEstablecer == null || comandoRecargar == null || params == null) {
             throw new IllegalArgumentException(
-                    "No se puede crear un ejecutador de comandos de configuración de un plugin sin información de qué comandos o parámetros maneja");
+                "No se puede crear un ejecutador de comandos de configuración de un plugin sin información de qué comandos o parámetros maneja"
+            );
         }
+
         this.comandoEstablecer = comandoEstablecer;
         this.comandoRecargar = comandoRecargar;
         this.params = params;
@@ -89,10 +93,11 @@ public final class ComandosConfiguracion implements TabExecutor {
      */
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        boolean toret = seDebeAtender(command, sender, args.length);
+        boolean toret = seDebeAtender(command, sender);
 
         if (toret) {
             String nombreComando = command.getName();
+
             if (nombreComando.equals(comandoEstablecer)) {
                 String idParam = args[0];
                 String valor = arrayAString(args, 1);
@@ -106,12 +111,16 @@ public final class ComandosConfiguracion implements TabExecutor {
                 }
 
                 if (toret && param.puedeCambiarlo(sender)) {
-                    if (param.setValor(valor)) {
-                        sender.sendMessage(ChatColor.GREEN + "Has cambiado el valor de la configuración \""
-                                + param.getRutaConfiguracion() + "\" con éxito.");
+                    if (param.parsearValor(valor)) {
+                        sender.sendMessage(
+                            ChatColor.GREEN + "Has cambiado el valor de la configuración \"" +
+                            param.getRutaConfiguracion() + "\" con éxito."
+                        );
                     } else {
-                        sender.sendMessage(ChatColor.RED
-                                + "El valor especificado para esa configuración no es válido. Consulta la documentación del plugin para más información.");
+                        sender.sendMessage(
+                            ChatColor.RED + "El valor especificado para esa configuración no es válido. " +
+                            "Consulta la documentación del plugin para más información."
+                        );
                     }
                 }
             } else if (nombreComando.equals(comandoRecargar)) {
@@ -125,10 +134,14 @@ public final class ComandosConfiguracion implements TabExecutor {
                         }
                         p.leer();
                     }
+
                     sender.sendMessage(ChatColor.GREEN + "Se ha recargado la configuración del plugin con éxito.");
                 } catch (IllegalArgumentException | ClassCastException exc) {
-                    sender.sendMessage(ChatColor.RED
-                            + "Ha ocurrido un error recargando la configuración del plugin. Esto puede ser debido a valores inválidos. Se muestra más información sobre el error por consola.");
+                    sender.sendMessage(
+                        ChatColor.RED + "Ha ocurrido un error recargando la configuración del plugin. " +
+                        "Esto puede ser debido a valores inválidos. Se muestra más información sobre el error por consola."
+                    );
+
                     getLogger().warning(exc.getMessage());
                 }
             }
@@ -139,7 +152,7 @@ public final class ComandosConfiguracion implements TabExecutor {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        List<String> toret = new LinkedList<>();
+        List<String> toret = new ArrayList<>(params.length);
 
         // args.length == 1 porque solo nos interesa completar el parámetro de
         // configuración
@@ -156,29 +169,6 @@ public final class ComandosConfiguracion implements TabExecutor {
 
     /**
      * Comprueba si un determinado comando, enviado por el responsable especificado,
-     * debe de ser tenido en cuenta para esta lógica de negocio.
-     *
-     * @param cmd   El comando a comprobar.
-     * @param snd   El responsable de enviar el comando a comprobar.
-     * @param nargs El número de argumentos que el responsable de enviar el comando
-     *              especificó.
-     * @return Verdadero si debe de ser tenido en cuenta, falso en caso contrario.
-     */
-    private boolean seDebeAtender(Command cmd, CommandSender snd, int nargs) {
-        boolean formaCorrecta = seDebeAtender(cmd, snd);
-        boolean argsCorrectos = true;
-
-        // Solo el comando de establecer configuración requiere un segundo parámetro
-        // siempre
-        if (cmd.getName().equals(comandoEstablecer)) {
-            argsCorrectos = nargs >= 2;
-        }
-
-        return formaCorrecta && argsCorrectos;
-    }
-
-    /**
-     * Comprueba si un determinado comando, enviado por el responsable especificado,
      * debe de ser tenido en cuenta para esta lógica de negocio, ignorando el número
      * de argumentos especificados.
      *
@@ -187,10 +177,9 @@ public final class ComandosConfiguracion implements TabExecutor {
      * @return Verdadero si debe de ser tenido en cuenta, falso en caso contrario.
      */
     private boolean seDebeAtender(Command cmd, CommandSender snd) {
-        boolean emisorCorrecto = snd instanceof Player || snd instanceof ConsoleCommandSender;
-        boolean nombreCorrecto = cmd.getName().equals(comandoEstablecer) || cmd.getName().equals(comandoRecargar);
-
-        return emisorCorrecto && nombreCorrecto;
+        return
+            (snd instanceof Player || snd instanceof ConsoleCommandSender || snd instanceof RemoteConsoleCommandSender) &&
+            (cmd.getName().equals(comandoEstablecer) || cmd.getName().equals(comandoRecargar));
     }
 
     /**

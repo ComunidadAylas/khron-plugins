@@ -31,19 +31,23 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class PluginConfigurable extends JavaPlugin {
     @Override
     public void onEnable() {
-        this.saveDefaultConfig(); // Necesario para que se lea correctamente la primera vez que se ejecuta el
-                                  // plugin
+        // Necesario para la primera ejecución de un plugin
+        this.saveDefaultConfig();
     }
 
     /**
-     * Inicializa los valores de los parámetros de configuración del plugin que se
-     * pasan como parámetro desde memoria secundaria. Si no es posible inicializar
-     * algún parámetro porque su valor asociado es inválido, este método detiene el
-     * plugin y muestra un error en la consola del servidor.
+     * Inicializa los valores de los parámetros de configuración del plugin que
+     * se pasan como parámetro desde memoria secundaria. Si no es posible
+     * inicializar algún parámetro porque su valor asociado es inválido, este
+     * método detiene el plugin y muestra un error en la consola del servidor.
      * 
      * @param params Los parámetros cuyos valores inicializar.
+     * @return Verdadero si los parámetros de configuración se han leído
+     *         correctamente, falso en otro caso.
      */
-    protected final void leerParametrosConfiguracion(ParametroConfiguracion<?, ?>... params) {
+    protected final boolean leerParametrosConfiguracion(ParametroConfiguracion<?, ?>... params) {
+        boolean toret = true;
+
         try {
             if (params != null) {
                 for (ParametroConfiguracion<?, ?> p : params) {
@@ -52,8 +56,12 @@ public class PluginConfigurable extends JavaPlugin {
             }
         } catch (IllegalArgumentException | ClassCastException exc) {
             getLogger().severe("La configuración del plugin es inválida. Se detiene su ejecución. Detalles:");
-            getServer().getLogger().severe(exc.getMessage());
+            getLogger().severe(exc.getMessage());
             getPluginManager().disablePlugin(this);
+
+            toret = false;
         }
+
+        return toret;
     }
 }
