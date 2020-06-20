@@ -17,14 +17,20 @@
  */
 package io.github.alextmjugador.khron.tiemporeal;
 
-import java.util.Set;
+import java.util.Map;
 
-import org.bukkit.World;
 import org.bukkit.command.TabExecutor;
-import org.bukkit.event.world.WorldUnloadEvent;
 
 import io.github.alextmjugador.khron.libconfig.ComandosConfiguracion;
 import io.github.alextmjugador.khron.libconfig.PluginConfigurable;
+import io.github.alextmjugador.khron.tiemporeal.configuraciones.ClaveWeatherbit;
+import io.github.alextmjugador.khron.tiemporeal.configuraciones.MapaParametrosSimulacionMundo;
+import io.github.alextmjugador.khron.tiemporeal.configuraciones.ParametrosSimulacionMundo;
+import io.github.alextmjugador.khron.tiemporeal.configuraciones.TextoRelojDigital;
+import io.github.alextmjugador.khron.tiemporeal.configuraciones.TextoRelojDigitalDimensionSinCiclo;
+import io.github.alextmjugador.khron.tiemporeal.relojes.RelojDigitalBasico;
+
+import static org.bukkit.Bukkit.getPluginManager;
 
 /**
  * Implementa un plugin que sincroniza el tiempo real del servidor con el tiempo
@@ -33,11 +39,6 @@ import io.github.alextmjugador.khron.libconfig.PluginConfigurable;
  * @author AlexTMjugador
  */
 public final class PluginTiempoReal extends PluginConfigurable {
-    /**
-     * Almacena si el plugin ha sido inicializado con éxito o no.
-     */
-    private static boolean inicializado = false;
-
     /**
      * El comando para establecer parámetros de configuración de este plugin. Debe
      * de estar registrado como tal en el fichero "plugin.yml".
@@ -51,22 +52,32 @@ public final class PluginTiempoReal extends PluginConfigurable {
     private static final String COMANDO_RECARGAR_CONFIG = "trrecargarconfig";
 
     /**
-     * El parámetro de configuración que representa los mundos en los que
-     * sincronizar la hora.
+     * Almacena si el plugin ha sido inicializado con éxito o no.
      */
-    private static MundosSincronizacion cfgMundosSincronizacion;
+    private boolean inicializado = false;
+
+    /**
+     * Los parámetros de simulación del ciclo diurno de cada mundo.
+     */
+    private MapaParametrosSimulacionMundo parametrosSimulacionMundo;
 
     /**
      * El parámetro de configuración que representa el texto a mostrar cuando un
-     * jugador empuña un reloj.
+     * jugador empuña un reloj digital.
      */
-    private static TextoHora cfgTextoHora;
+    private TextoRelojDigital textoRelojDigital;
 
     /**
      * El parámetro de configuración que indica el texto a mostrar cuando un jugador
-     * empuña un reloj, en una dimensión que no tenga un ciclo día-noche.
+     * empuña un reloj digital, en una dimensión que no tenga un ciclo día-noche.
      */
-    private static TextoHoraDimensionSinCiclo cfgTextoHoraDimensionSinCiclo;
+    private TextoRelojDigitalDimensionSinCiclo textoRelojDigitalDimensionSinCiclo;
+
+    /**
+     * El parámetro de configuración que contiene la clave a usar para
+     * autenticarse contra la API de Weatherbit.
+     */
+    private ClaveWeatherbit claveWeatherbit;
 
     /**
      * Crea los objetos y eventos necesarios para sincronizar el tiempo y extender
@@ -78,38 +89,38 @@ public final class PluginTiempoReal extends PluginConfigurable {
         // Realizar tareas de inicialización de un plugin configurable
         super.onEnable();
 
-        // Crear los objetos que representan parámetros de configuración e
-        // inicializarlos, si hace falta
-        if (cfgMundosSincronizacion == null) {
-            cfgMundosSincronizacion = new MundosSincronizacion();
-        }
+        // Crear los objetos que representan parámetros de configuración e inicializarlos
+        this.parametrosSimulacionMundo = new MapaParametrosSimulacionMundo();
+        this.textoRelojDigital = new TextoRelojDigital();
+        this.textoRelojDigitalDimensionSinCiclo = new TextoRelojDigitalDimensionSinCiclo();
+        this.claveWeatherbit = new ClaveWeatherbit();
 
-        if (cfgTextoHora == null) {
-            cfgTextoHora = new TextoHora();
-        }
-
-        if (cfgTextoHoraDimensionSinCiclo == null) {
-            cfgTextoHoraDimensionSinCiclo = new TextoHoraDimensionSinCiclo();
-        }
-
-        leerParametrosConfiguracion(
-            cfgMundosSincronizacion, cfgTextoHora, cfgTextoHoraDimensionSinCiclo
+        boolean configuracionLeida = leerParametrosConfiguracion(
+            parametrosSimulacionMundo, textoRelojDigital, textoRelojDigitalDimensionSinCiclo,
+            claveWeatherbit
         );
 
-        // Registrar comandos del plugin
-        TabExecutor ejecutorComandos = new ComandosConfiguracion(
-            COMANDO_ESTABLECER_CONFIG, COMANDO_RECARGAR_CONFIG,
-            cfgMundosSincronizacion, cfgTextoHora, cfgTextoHoraDimensionSinCiclo
-        );
-        getCommand(COMANDO_ESTABLECER_CONFIG).setExecutor(ejecutorComandos);
-        getCommand(COMANDO_ESTABLECER_CONFIG).setTabCompleter(ejecutorComandos);
-        getCommand(COMANDO_RECARGAR_CONFIG).setExecutor(ejecutorComandos);
-        getCommand(COMANDO_RECARGAR_CONFIG).setTabCompleter(ejecutorComandos);
+        if (configuracionLeida) {
+            // Registrar comandos del plugin
+            TabExecutor ejecutorComandos = new ComandosConfiguracion(
+                COMANDO_ESTABLECER_CONFIG, COMANDO_RECARGAR_CONFIG,
+                parametrosSimulacionMundo, textoRelojDigital, textoRelojDigitalDimensionSinCiclo,
+                claveWeatherbit
+            );
+            getCommand(COMANDO_ESTABLECER_CONFIG).setExecutor(ejecutorComandos);
+            getCommand(COMANDO_ESTABLECER_CONFIG).setTabCompleter(ejecutorComandos);
+            getCommand(COMANDO_RECARGAR_CONFIG).setExecutor(ejecutorComandos);
+            getCommand(COMANDO_RECARGAR_CONFIG).setTabCompleter(ejecutorComandos);
 
-        // Comenzar acciones del plugin
-        RelojExtendido.get();
+            // Comenzar simulación de ciclos diurnos
+            SimuladorTiempo.get().comenzarSimulacion();
 
-        inicializado = true;
+            // Registrar eventos
+            getPluginManager().registerEvents(SimuladorTiempo.get(), this);
+            getPluginManager().registerEvents(RelojDigitalBasico.get(), this);
+
+            inicializado = true;
+        }
     }
 
     /**
@@ -118,45 +129,51 @@ public final class PluginTiempoReal extends PluginConfigurable {
     @Override
     public void onDisable() {
         if (inicializado) {
-            AgenteSincHora ash = AgenteSincHora.get();
-
-            for (World w : getCfgMundosSincronizacion()) {
-                ash.onWorldUnload(new WorldUnloadEvent(w));
-            }
+            SimuladorTiempo.get().detenerSimulacion();
+            RelojDigitalBasico.get().ocultarTodosLosDisplay();
         }
     }
 
     /**
-     * Obtiene el valor actual del parámetro de configuración que indica el texto a
-     * mostrar cuando un jugador empuña un reloj.
+     * Obtiene los parámetros de simulación del tiempo de los mundos.
      *
-     * @return El devandicho valor del parámetro de configuración. Puede ser nulo si
-     *         todavía no se ha inicializado la configuración del plugin.
+     * @return Los devandichos parámetros. Pueden ser nulos solo si todavía no
+     *         se ha inicializado la configuración del plugin.
      */
-    public String getCfgTextoHora() {
-        return cfgTextoHora != null ? cfgTextoHora.getValor() : null;
+    public Map<String, ParametrosSimulacionMundo> getParametrosSimulacionMundo() {
+        return parametrosSimulacionMundo == null ? null : parametrosSimulacionMundo.getValor();
     }
 
     /**
      * Obtiene el valor actual del parámetro de configuración que indica el texto a
-     * mostrar cuando un jugador empuña un reloj, en una dimensión que no tenga un
-     * ciclo día-noche.
+     * mostrar cuando un jugador empuña un reloj digital.
      *
      * @return El devandicho valor del parámetro de configuración. Puede ser nulo si
      *         todavía no se ha inicializado la configuración del plugin.
      */
-    public String getCfgTextoHoraDimensionSinCiclo() {
-        return cfgTextoHoraDimensionSinCiclo != null ? cfgTextoHoraDimensionSinCiclo.getValor() : null;
+    public String getTextoRelojDigital() {
+        return textoRelojDigital == null ? null : textoRelojDigital.getValor();
     }
 
     /**
-     * Obtiene el valor actual del parámetro de configuración que indica los mundos
-     * en los que sincronizar la hora con la del servidor.
+     * Obtiene el valor actual del parámetro de configuración que indica el texto a
+     * mostrar cuando un jugador empuña un reloj digital, en una dimensión que no
+     * tenga un ciclo día-noche.
      *
      * @return El devandicho valor del parámetro de configuración. Puede ser nulo si
      *         todavía no se ha inicializado la configuración del plugin.
      */
-    public Set<World> getCfgMundosSincronizacion() {
-        return cfgMundosSincronizacion != null ? cfgMundosSincronizacion.getValor() : null;
+    public String getTextoRelojDigitalDimensionSinCiclo() {
+        return textoRelojDigitalDimensionSinCiclo == null ? null : textoRelojDigitalDimensionSinCiclo.getValor();
+    }
+
+    /**
+     * Obtiene el valor actual del parámetro de configuración que indica la
+     * clave a usar para autenticarse contra la API de Weatherbit.
+     *
+     * @return La devandicha clave.
+     */
+    public String getClaveWeatherbit() {
+        return claveWeatherbit == null ? null : claveWeatherbit.getValor();
     }
 }

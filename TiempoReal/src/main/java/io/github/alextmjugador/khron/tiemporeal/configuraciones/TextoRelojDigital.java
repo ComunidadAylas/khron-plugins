@@ -15,77 +15,77 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package io.github.alextmjugador.khron.tiemporeal;
+package io.github.alextmjugador.khron.tiemporeal.configuraciones;
 
 import org.bukkit.ChatColor;
 
 import io.github.alextmjugador.khron.libconfig.ParametroConfiguracion;
+import io.github.alextmjugador.khron.tiemporeal.PluginTiempoReal;
 
 /**
  * Modela un parámetro de configuración que contiene el texto a mostrar cuando
- * un jugador empuñe un reloj, para que vea la hora.
+ * un jugador empuñe un reloj digital, para que vea su display.
  *
  * @author AlexTMjugador
  */
-class TextoHora extends ParametroConfiguracion<String, String> {
+public class TextoRelojDigital extends ParametroConfiguracion<String, String> {
     /**
-     * La palabra clave que debe de contener el texto de la hora en el reloj para
-     * ser válido. Se sustituirá por la hora del mundo en el que el jugador esté.
+     * La palabra clave que debe de contener el valor del parámetro de configuración
+     * para ser válido. Se sustituirá por el display del reloj.
      */
-    public static final String PALABRA_CLAVE_TEXTO_HORA = "{HORA}";
-
-    /**
-     * La cadena de texto {@link PALABRA_CLAVE_TEXTO_HORA}, pero construida de
-     * manera que puede ser interpretada con seguridad como una expresión regular.
-     */
-    public static final String REGEX_CLAVE_TEXTO_HORA = "\\{HORA\\}";
+    public static final String DISPLAY = "{DISPLAY}";
 
     /**
      * La ruta en el fichero de configuración hacia este parámetro de configuración.
      */
-    private static final String RUTA_CONFIG = "Texto de hora en reloj";
+    private static final String RUTA_CONFIG = "Texto para relojes digitales";
 
     /**
      * El identificador de este parámetro de configuración en el código y en el
      * comando asociado para cambiarlo.
      */
-    private static final String ID_CONFIG = "textoHora";
+    private static final String ID_CONFIG = "textoRelojDigital";
 
     /**
      * El permiso necesario para ejecutar un comando que cambie el valor de este
      * parámetro de configuración.
      */
-    private static final String PERMISO_CONFIG = "tiemporeal.trconfig.textoHora";
+    private static final String PERMISO_CONFIG = "tiemporeal.trconfig.textoRelojDigital";
 
     /**
-     * La cadena de texto, sin los cambios aplicados por {@link procesarValor}.
+     * El número máximo de caracteres que el valor puede tomar.
+     */
+    private static final int CARACTERES_MAX = 75;
+
+    /**
+     * La cadena de texto representativa del valor de configuración, sin los cambios
+     * aplicados por {@link procesarValor}.
      */
     private String valorSinProcesar;
 
-    /**
-     * El número máximo de caracteres que este valor puede tomar.
-     */
-    private final int CARACTERES_MAX = 75;
-
-    public TextoHora() {
+    public TextoRelojDigital() {
         this(RUTA_CONFIG, ID_CONFIG, PERMISO_CONFIG);
     }
 
-    protected TextoHora(String rutaConfig, String idCondig, String permisoConfig) {
+    protected TextoRelojDigital(String rutaConfig, String idCondig, String permisoConfig) {
         super(PluginTiempoReal.getProvidingPlugin(PluginTiempoReal.class), rutaConfig, idCondig, permisoConfig);
     }
 
     @Override
     protected final String procesarValor(String nuevoValor) {
         String toret = ChatColor.translateAlternateColorCodes('&', nuevoValor);
+        int i = toret.indexOf(DISPLAY);
 
         valorSinProcesar = nuevoValor;
-        if (toret.matches(".*" + REGEX_CLAVE_TEXTO_HORA + ".*\\S+")) {
-            int i = toret.indexOf(PALABRA_CLAVE_TEXTO_HORA);
-            String parteAnt = toret.substring(0, i); // i no va a valer -1, así que por lo menos tenemos la cadena
-                                                     // vacía
-            toret = toret.replaceFirst(REGEX_CLAVE_TEXTO_HORA,
-                    PALABRA_CLAVE_TEXTO_HORA + ChatColor.RESET + ChatColor.getLastColors(parteAnt));
+
+        // Si hay texto después del display, restaurar colores previos al display
+        if (i + DISPLAY.length() < nuevoValor.length()) {
+            String parteAnt = toret.substring(0, i);
+
+            toret = toret.replace(
+                DISPLAY,
+                DISPLAY + ChatColor.RESET + ChatColor.getLastColors(parteAnt)
+            );
         }
 
         return toret;
@@ -98,7 +98,7 @@ class TextoHora extends ParametroConfiguracion<String, String> {
 
     /**
      * {@inheritDoc} Debe de contener una sola vez la cadena de texto determinada
-     * por el atributo estático {@link PALABRA_CLAVE_TEXTO_HORA}, que el plugin
+     * por el atributo estático {@link DISPLAY}, que el plugin
      * reemplazará por la hora actual. Tampoco debe de ser mayor de
      * {@link CARACTERES_MAX} caracteres.
      *
@@ -109,8 +109,10 @@ class TextoHora extends ParametroConfiguracion<String, String> {
         boolean toret = false;
 
         if (otroValor != null && otroValor.length() <= CARACTERES_MAX) {
-            int ultimoIndice = otroValor.lastIndexOf(PALABRA_CLAVE_TEXTO_HORA);
-            toret = ultimoIndice != -1 && ultimoIndice == otroValor.indexOf(PALABRA_CLAVE_TEXTO_HORA);
+            int indicePrimeraAparicion = otroValor.indexOf(DISPLAY);
+
+            toret = indicePrimeraAparicion >= 0 &&
+                indicePrimeraAparicion == otroValor.lastIndexOf(DISPLAY);
         }
 
         return toret;

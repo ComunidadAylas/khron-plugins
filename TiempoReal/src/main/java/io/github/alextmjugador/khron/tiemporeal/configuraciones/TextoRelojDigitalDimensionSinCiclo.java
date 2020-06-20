@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package io.github.alextmjugador.khron.tiemporeal;
+package io.github.alextmjugador.khron.tiemporeal.configuraciones;
 
 /**
  * Modela un parámetro de configuración que contiene el texto a mostrar cuando
@@ -23,25 +23,25 @@ package io.github.alextmjugador.khron.tiemporeal;
  *
  * @author AlexTMjugador
  */
-final class TextoHoraDimensionSinCiclo extends TextoHora {
+public final class TextoRelojDigitalDimensionSinCiclo extends TextoRelojDigital {
     /**
      * La ruta en el fichero de configuración hacia este parámetro de configuración.
      */
-    private static final String RUTA_CONFIG = "Texto de hora en reloj para dimensiones sin ciclo día-noche";
+    private static final String RUTA_CONFIG = "Texto para relojes digitales en dimensiones sin ciclo día-noche";
 
     /**
      * El identificador de este parámetro de configuración en el código y en el
      * comando asociado para cambiarlo.
      */
-    private static final String ID_CONFIG = "textoHoraDimensionSinCiclo";
+    private static final String ID_CONFIG = "textoRelojDigitalDimensionSinCiclo";
 
     /**
      * El permiso necesario para ejecutar un comando que cambie el valor de este
      * parámetro de configuración.
      */
-    private static final String PERMISO_CONFIG = "tiemporeal.trconfig.textoHoraDimensionSinCiclo";
+    private static final String PERMISO_CONFIG = "tiemporeal.trconfig.textoRelojDigitalDimensionSinCiclo";
 
-    public TextoHoraDimensionSinCiclo() {
+    public TextoRelojDigitalDimensionSinCiclo() {
         super(RUTA_CONFIG, ID_CONFIG, PERMISO_CONFIG);
     }
 }

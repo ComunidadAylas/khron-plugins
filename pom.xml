@@ -11,7 +11,6 @@
     <!-- Plugins contenidos por este proyecto -->
     <modules>
         <module>TiempoReal</module>
-        <module>GestorBarraAccion</module>
         <module>LibConfig</module>
     </modules>
     
@@ -38,6 +37,8 @@
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
+                    <showDeprecation>true</showDeprecation>
+                    <showWarnings>true</showWarnings>
                     <compilerArgs>
                         <!-- Mostrar todas las advertencias de compilación -->
                         <arg>-Xlint:all</arg>

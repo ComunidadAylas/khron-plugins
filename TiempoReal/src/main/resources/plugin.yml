@@ -3,7 +3,7 @@ description: ${description}
 version: ${version}
 author: Khron. Para más información ver repositorio de GitHub
 main: io.github.alextmjugador.khron.tiemporeal.PluginTiempoReal
-depend: [GestorBarraAccion, LibConfig]
+depend: [LibConfig]
 api-version: 1.15
 commands:
     trconfig:
@@ -28,14 +28,17 @@ permissions:
     tiemporeal.trconfig.*:
         description: Permite cambiar todos los parámetros de configuración del plugin.
         children:
-            tiemporeal.trconfig.mundosSinc: true
-            tiemporeal.trconfig.textoHora: true
-            tiemporeal.trconfig.textoHoraDimensionSinCiclo: true
-    tiemporeal.trconfig.mundosSinc:
-        description: Permite cambiar en qué mundos ${name} sincroniza la hora con la del servidor.
-    tiemporeal.trconfig.textoHora:
-        description: Permite cambiar el texto que ${name} mostrará a los jugadores cuando empuñen un reloj.
-    tiemporeal.trconfig.textoHoraDimensionSinCiclo:
-        description: Permite cambiar el texto que ${name} mostrará a los jugadores cuando empuñen un reloj, en dimensiones donde no hay un ciclo día-noche.
+            tiemporeal.trconfig.mundosSimulacionYParametros: true
+            tiemporeal.trconfig.textoRelojDigital: true
+            tiemporeal.trconfig.textoRelojDigitalDimensionSinCiclo: true
+            tiemporeal.trconfig.claveWeatherbit: true
+    tiemporeal.trconfig.mundosSimulacionYParametros:
+        description: Permite cambiar los mundos en los que ${name} simula un ciclo diurno de longitud realista, junto con los parámetros usados para la simulación del ciclo diurno.
+    tiemporeal.trconfig.textoRelojDigital:
+        description: Permite cambiar el texto que ${name} mostrará a los jugadores cuando empuñen un reloj digital.
+    tiemporeal.trconfig.textoRelojDigitalDimensionSinCiclo:
+        description: Permite cambiar el texto que ${name} mostrará a los jugadores cuando empuñen un reloj digital, en dimensiones donde no hay un ciclo día-noche.
+    tiemporeal.trconfig.claveWeatherbit:
+        description: Establece la clave a usar para autenticarse contra la API de Weatherbit.
     tiemporeal.trrecargarconfig:
         description: Permite recargar la configuración de ${name} desde disco.

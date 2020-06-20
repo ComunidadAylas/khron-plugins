@@ -1,15 +1,42 @@
 # Configuración del plugin TiempoReal ${version} #
 
-# El siguiente parámetro contiene una lista de nombres de mundos cuya hora será sincronizada con la del servidor.
-Mundos en los que sincronizar la hora:
-    - Khron
+# El siguiente parámetro contiene una lista de mundos cuyo ciclo diurno y meteorología será simulada
+# por este plugin, sustituyendo las mecánica incluidas en Minecraft.
+# Cada elemento de la lista es del formato:
+#
+# Nombre mundo, franja horaria, arco diurno solar, clima, latitud y longitud del spawn, radio del planeta
+#
+# "Nombre mundo" es el nombre del mundo de Minecraft donde el ciclo diurno será simulado.
+# "franja horaria" representa el desfase horario del mundo respecto al UTC, en un formato compatible con
+# https://docs.oracle.com/javase/8/docs/api/java/time/ZoneId.html#of-java.lang.String-
+# "arco diurno solar" es el nombre de un algoritmo para calcular la posición del sol en un mundo de Minecraft
+# en un determinado instante de tiempo. Por ahora, puede ser "ArcoDiurnoSimple" (simula unos ciclos de día-noche
+# constantes para todo el año, al estilo predeterminado de Minecraft, pero con duración real) o
+# "ArcoDiurnoTerrestre" (que usa cálculos físicos realistas para el cálculo de la posición del sol, simulando
+# estaciones y fases lunares que ocurren en la Tierra).
+# "clima" es el nombre de un algoritmo para calcular el tiempo atmosférico de un mundo de Minecraft. Por ahora,
+# puede tomar los valores "ClimaWeatherbit" (que recurre a la API de Weatherbit para obtener información meteorológica,
+# siendo necesario especificar la clave a usar para autenticarse contra la API) y "ClimaMinecraft" (que no afecta
+# a las mecánicas de clima habituales de Minecraft). El plugin intentará darle el mejor uso posible a cada
+# algoritmo, dentro de sus limitaciones de rendimiento y/o frecuencia de cálculo.
+# "latitud y longitud del spawn": las coordenadas geográficas de latitud y longitud del spawn del mundo,
+# en formato decimal en radianes (0,705401 -0,064622) o bien sexagesimal (40º24'59.4''N 3º42'9.22''O).
+# "radio del planeta": un número decimal positivo representando el radio del planeta a usar para las simulaciones,
+# en kilómetros.
+Parámetros de simulación de mundos:
+    - Khron, Europe/Madrid, ArcoDiurnoTerrestre, ClimaWeatherbit, 37º53'44.9988''N 4º46'37.3332''O, 6371
 #   - Mundo2
 #   - ...
 
-# El siguiente parámetro indica el texto que se mostrará a los jugadores en la barra de acciones cuando empuñen un reloj.
-# Admite códigos de formato (con el caracter &). Debe de contener el texto "{HORA}", que el plugin reemplazará por la hora actual del mundo en el que esté el jugador.
-Texto de hora en reloj: '&bEl reloj marca las &l{HORA}'
+# El siguiente parámetro indica el texto que se mostrará a los jugadores en la barra de acciones cuando empuñen
+# un reloj digital.
+# Admite códigos de formato (con el caracter &). Debe de contener el texto "{DISPLAY}", que el plugin reemplazará por
+# el texto mostrado en la pantalla del reloj.
+Texto para relojes digitales: '&7&l{DISPLAY}'
 
 # Este parámetro puede tomar los mismos valores que el anterior, y sirve para un propósito similar, salvo que
 # se utiliza para dimensiones que no tienen un ciclo día-noche.
-Texto de hora en reloj para dimensiones sin ciclo día-noche: '&7&l{HORA}'
+Texto para relojes digitales en dimensiones sin ciclo día-noche: '&8&l{DISPLAY}'
+
+# La clave a usar para autenticarse con la API de Weatherbit y obtener información meteorológica de ella.
+#Clave de la API de Weatherbit: 'CLAVEFALSA123'
