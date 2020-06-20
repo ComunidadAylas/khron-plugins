@@ -24,7 +24,7 @@
 # "radio del planeta": un número decimal positivo representando el radio del planeta a usar para las simulaciones,
 # en kilómetros.
 Parámetros de simulación de mundos:
-    - Khron, Europe/Madrid, ArcoDiurnoTerrestre, ClimaWeatherbit, 37º53'44.9988''N 4º46'37.3332''O, 6371
+    - Khron, Europe/Madrid, ArcoDiurnoTerrestre, ClimaWeatherbit, 40º24'59.4''N 3º42'9.22''O, 6371
 #   - Mundo2
 #   - ...
 
