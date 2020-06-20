@@ -34,7 +34,7 @@ public final class FactoriaArcoDiurnoSolar {
     /**
      * Crea un arco diurno solar a partir de su nombre identificativo, que
      * actualmente se corresponde con el nombre simple de su clase.
-     * 
+     *
      * @param nombreArco El nombre del arco diurno solar a crear.
      * @return El arco diurno solar creado.
      * @throws NoSuchElementException Si no se ha podido instanciar un arco diurno
