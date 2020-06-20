@@ -1,0 +1,1 @@
+https://www.wolframalpha.com/input/?i=%28%284*x%29%2F24000%2B4*%281-floor%28x%2F24000%2B0.75%29%29-cos%28pi*%28x%2F24000%2B0.75-floor%28x%2F24000%2B0.75%29%29%29%29%2F6-alfa 
