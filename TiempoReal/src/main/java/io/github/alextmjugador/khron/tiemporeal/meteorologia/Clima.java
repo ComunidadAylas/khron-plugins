@@ -104,7 +104,7 @@ public interface Clima {
      * @return Verdadero si este clima pretende modificar las mecánicas de
      *         meteorología, falso en otro caso.
      */
-    public default boolean modificaMecanicasMinecraft() {
+    public default boolean simulaMeteorologia() {
         return true;
     }
 }

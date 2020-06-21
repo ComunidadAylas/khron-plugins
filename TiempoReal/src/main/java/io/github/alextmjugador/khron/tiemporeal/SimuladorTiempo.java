@@ -426,30 +426,34 @@ public final class SimuladorTiempo
                     ArcoDiurnoSolar arcoDiurnoSolar = parametrosSimulacionMundo.getArcoDiurnoSolar();
                     Clima clima = parametrosSimulacionMundo.getClima();
                     float maximosCalculosClimaDia = clima.maximasInvocacionesPorDiaPermitidas();
-                    boolean climaPersonalizado = clima.modificaMecanicasMinecraft();
-
-                    // Establecer el tiempo del mundo en el servidor, usado para las mecánicas del juego,
-                    // según lo calculado por el arco diurno configurado
-                    long tiempoMundo = arcoDiurnoSolar.getTiempoMundo(ahora, latitudSpawn, longitudSpawn);
-                    w.setTime(tiempoMundo);
+                    boolean climaSimulado = clima.simulaMeteorologia();
+                    boolean tiempoSimulado = arcoDiurnoSolar.simulaPlaneta();
 
                     // La distancia mínima a recorrer en un eje de latitud o longitud por un jugador
                     // para incrementarla 0,5 grados = 0,00872665 radianes
                     double umbralAgrupamiento = radio * 0.00872665;
 
-                    // Discretizar la posición del punto de aparición y guardarla en la caché,
-                    // para que jugadores cerca del punto de aparición puedan obtener el tiempo
-                    // calculado de ella más rápidamente
                     Location puntoAparicionMundo = w.getSpawnLocation();
-                    Vector puntoAparicionMundoDiscretizado = new Vector(
-                        Math.floor(puntoAparicionMundo.getX() / umbralAgrupamiento),
-                        0,
-                        Math.floor(puntoAparicionMundo.getZ() / umbralAgrupamiento)
-                    );
-                    cacheTiemposCalculados.put(puntoAparicionMundoDiscretizado, tiempoMundo);
+
+                    // Establecer el tiempo del mundo en el servidor, usado para las mecánicas del juego,
+                    // según lo calculado por el arco diurno configurado, si corresponde
+                    if (tiempoSimulado) {
+                        long tiempoMundo = arcoDiurnoSolar.getTiempoMundo(ahora, latitudSpawn, longitudSpawn);
+                        w.setTime(tiempoMundo);
+
+                        // Discretizar la posición del punto de aparición y guardarla en la caché,
+                        // para que jugadores cerca del punto de aparición puedan obtener el tiempo
+                        // calculado de ella más rápidamente
+                        Vector puntoAparicionMundoDiscretizado = new Vector(
+                            Math.floor(puntoAparicionMundo.getX() / umbralAgrupamiento),
+                            0,
+                            Math.floor(puntoAparicionMundo.getZ() / umbralAgrupamiento)
+                        );
+                        cacheTiemposCalculados.put(puntoAparicionMundoDiscretizado, tiempoMundo);
+                    }
 
                     // Calcular el clima del mundo si corresponde
-                    if (climaPersonalizado) {
+                    if (climaSimulado) {
                         actualizarTiempoAtmosferico(
                             clima, latitudSpawn, longitudSpawn, maximosCalculosClimaDia,
                             (TiempoAtmosferico t) -> {
@@ -476,33 +480,35 @@ public final class SimuladorTiempo
                         double latitudJugador = latitudSpawn + deltaz;
                         double longitudJugador = longitudSpawn + deltax;
 
-                        try {
-                            // Obtener el tiempo a mostrarle al jugador de la caché, si es posible,
-                            // o calcularlo si no está
-                            long tiempoJugador = cacheTiemposCalculados.get(
-                                new Vector(
-                                    Math.floor(posicionOjos.getX() / umbralAgrupamiento),
-                                    0,
-                                    Math.floor(posicionOjos.getZ() / umbralAgrupamiento)
-                                ), () -> {
-                                    return arcoDiurnoSolar.getTiempoJugador(
-                                        ahora, w, latitudJugador, longitudJugador
-                                    );
-                                }
-                            );
+                        // Obtener el tiempo a mostrarle al jugador de la caché, si es posible,
+                        // o calcularlo si no está
+                        if (tiempoSimulado) {
+                            try {
+                                long tiempoJugador = cacheTiemposCalculados.get(
+                                    new Vector(
+                                        Math.floor(posicionOjos.getX() / umbralAgrupamiento),
+                                        0,
+                                        Math.floor(posicionOjos.getZ() / umbralAgrupamiento)
+                                    ), () -> {
+                                        return arcoDiurnoSolar.getTiempoJugador(
+                                            ahora, w, latitudJugador, longitudJugador
+                                        );
+                                    }
+                                );
 
-                            p.setPlayerTime(tiempoJugador, false);
-                        } catch (ExecutionException exc) {
-                            getLogger().log(
-                                Level.WARNING,
-                                "Ha ocurrido una excepción no controlada durante la simulación del ciclo diurno para un jugador",
-                                exc
-                            );
+                                p.setPlayerTime(tiempoJugador, false);
+                            } catch (ExecutionException exc) {
+                                getLogger().log(
+                                    Level.WARNING,
+                                    "Ha ocurrido una excepción no controlada durante la simulación del ciclo diurno para un jugador",
+                                    exc
+                                );
+                            }
                         }
 
                         // Aplicar el tiempo atmosférico particular si es necesario, y si
                         // el proveedor de tiempo atmosférico usado va sobrado de cálculos disponibles
-                        if (climaPersonalizado && maximosCalculosClimaDia >= umbralCalculos) {
+                        if (climaSimulado && maximosCalculosClimaDia >= umbralCalculos) {
                             actualizarTiempoAtmosferico(
                                 clima, latitudJugador, longitudJugador, maximosCalculosClimaDia,
                                 (TiempoAtmosferico t) -> {

@@ -51,7 +51,7 @@ final class ClimaMinecraft implements Clima {
     }
 
     @Override
-    public boolean modificaMecanicasMinecraft() {
+    public boolean simulaMeteorologia() {
         return false;
     }
 

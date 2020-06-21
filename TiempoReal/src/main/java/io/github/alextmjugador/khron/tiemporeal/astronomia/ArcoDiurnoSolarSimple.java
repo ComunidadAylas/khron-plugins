@@ -32,16 +32,11 @@ import org.bukkit.World;
  *
  * @author AlexTMjugador
  */
-final class ArcoDiurnoSimple implements ArcoDiurnoSolar {
+final class ArcoDiurnoSolarSimple implements ArcoDiurnoSolar {
 	/**
 	 * Restringe la instanciación a clases de este paquete.
 	 */
-	ArcoDiurnoSimple() {}
-
-    @Override
-	public PosicionObjetoAstronomico getPosicionSol(Instant instante, double latitud, double longitud) {
-		return null;
-	}
+	ArcoDiurnoSolarSimple() {}
 
 	@Override
 	public long getTiempoJugador(Instant instante, World mundo, double latitud, double longitud) {
@@ -61,10 +56,5 @@ final class ArcoDiurnoSimple implements ArcoDiurnoSolar {
 		// La siguiente expresión se obtiene tras simplificar
 		// h * 1000 + (m / 60) * 1000 + (s / 3600) * 1000 + (ms / 1000 / 3600) * 1000
 		return (h * 1000) + ((m * 50) / 3) + ((s * 5) / 18) + (ms / 3600);
-	}
-
-	@Override
-	public boolean simulaPlaneta() {
-		return false;
 	}
 }

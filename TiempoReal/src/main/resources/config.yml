@@ -10,10 +10,11 @@
 # "franja horaria" representa el desfase horario del mundo respecto al UTC, en un formato compatible con
 # https://docs.oracle.com/javase/8/docs/api/java/time/ZoneId.html#of-java.lang.String-
 # "arco diurno solar" es el nombre de un algoritmo para calcular la posición del sol en un mundo de Minecraft
-# en un determinado instante de tiempo. Por ahora, puede ser "ArcoDiurnoSimple" (simula unos ciclos de día-noche
-# constantes para todo el año, al estilo predeterminado de Minecraft, pero con duración real) o
-# "ArcoDiurnoTerrestre" (que usa cálculos físicos realistas para el cálculo de la posición del sol, simulando
-# estaciones y fases lunares que ocurren en la Tierra).
+# en un determinado instante de tiempo. Por ahora, puede ser "ArcoDiurnoSolarSimple" (simula unos ciclos de día-noche
+# constantes para todo el año, al estilo predeterminado de Minecraft, pero con duración real),
+# "ArcoDiurnoSolarTerrestre" (que usa cálculos físicos realistas para el cálculo de la posición del sol, simulando
+# estaciones y fases lunares que ocurren en la Tierra) o "ArcoDiurnoSolarMinecraft" (que no cambia las mecánicas de
+# día-noche habituales de Minecraft).
 # "clima" es el nombre de un algoritmo para calcular el tiempo atmosférico de un mundo de Minecraft. Por ahora,
 # puede tomar los valores "ClimaWeatherbit" (que recurre a la API de Weatherbit para obtener información meteorológica,
 # siendo necesario especificar la clave a usar para autenticarse contra la API) y "ClimaMinecraft" (que no afecta
@@ -24,7 +25,7 @@
 # "radio del planeta": un número decimal positivo representando el radio del planeta a usar para las simulaciones,
 # en kilómetros.
 Parámetros de simulación de mundos:
-    - Khron, Europe/Madrid, ArcoDiurnoTerrestre, ClimaWeatherbit, 40º24'59.4''N 3º42'9.22''O, 6371
+    - Khron, Europe/Madrid, ArcoDiurnoSolarTerrestre, ClimaWeatherbit, 40º24'59.4''N 3º42'9.22''O, 6371
 #   - Mundo2
 #   - ...
 

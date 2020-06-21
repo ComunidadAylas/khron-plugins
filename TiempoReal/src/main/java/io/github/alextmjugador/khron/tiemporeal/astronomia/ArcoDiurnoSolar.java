@@ -90,30 +90,16 @@ public interface ArcoDiurnoSolar {
     public long getTiempoMundo(Instant instante, double latitud, double longitud);
 
     /**
-     * Obtiene la posición del sol en un sistema de coordenadas horizontales
-     * centrado en un observador situado en la superficie de un planeta.
-     *
-     * @param instante El instante de tiempo terrestre para el que se desea calcular
-     *                 la posición.
-     * @param latitud  La latitud del punto de un planeta para el que se desea
-     *                 calcular la posición.
-     * @param longitud La longitud del punto de un plaeta para el que se desea
-     *                 calcular la posición.
-     * @return La devandicha posición. El objeto devuelto es nulo si este objeto no
-     *         simula un planeta.
-     * @throws IllegalArgumentException Si algún parámetro es inválido.
-     */
-    public PosicionObjetoAstronomico getPosicionSol(Instant instante, double latitud, double longitud);
-
-    /**
-     * Comprueba si este simulador de arco diurno simula un planeta. En tal caso, el
-     * simulador tendrá en cuenta las coordenadas geográficas pasadas a otros
-     * métodos, y dará diferentes resultados dependiendo de cuáles sean. En caso
-     * contrario, el valor de las coordenadas geográficas es ignorado e irrelevante,
-     * no se simula la posición de ningún astro real y, por tanto, no se puede
-     * obtener ésta.
+     * Comprueba si este simulador de arco diurno simula un planeta. En tal
+     * caso, el simulador tendrá en cuenta las coordenadas geográficas pasadas a
+     * otros métodos, y dará diferentes resultados dependiendo de cuáles sean.
+     * En caso contrario, el valor de las coordenadas geográficas es ignorado e
+     * irrelevante, no se simula la posición de ningún astro real y, por tanto,
+     * no tiene sentido obtener información de tiempo del objeto.
      *
      * @return Verdadero si se simula un planeta, falso en caso contrario.
      */
-    public boolean simulaPlaneta();
+    public default boolean simulaPlaneta() {
+        return true;
+    }
 }
