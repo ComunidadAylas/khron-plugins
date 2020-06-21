@@ -496,7 +496,7 @@ public final class SimuladorTiempo
                                     }
                                 );
 
-                                p.setPlayerTime(tiempoJugador, false);
+                                p.setPlayerTime(tiempoJugador, true);
                             } catch (ExecutionException exc) {
                                 getLogger().log(
                                     Level.WARNING,

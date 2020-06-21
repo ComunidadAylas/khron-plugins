@@ -60,6 +60,13 @@ final class ArcoDiurnoSolarTerrestre implements ArcoDiurnoSolar {
 
         long tiempoJugador = getTiempoMundo(instante, latitud, longitud);
 
+        // El tiempo usado por Bukkit es relativo aunque le digamos que no es relativo
+        // porque la documentación relativa a la relatividad del tiempo es relativamente mala.
+        // Gracias por hacer que lo relativo no sea realmente relativo y obligarme a hacerlo
+        // relativo, Bukkit
+        long tiempoMundo = mundo.getFullTime();
+        tiempoJugador -= tiempoMundo % 24000;
+
         long milisegundosUtc;
         try {
             milisegundosUtc = instante.toEpochMilli();
@@ -86,18 +93,11 @@ final class ArcoDiurnoSolarTerrestre implements ArcoDiurnoSolar {
             // Hemisferio sur (el ángulo ocupa el tercer o cuarto cuadrante en la circunferencia
             // goniométrica). El aspecto de las fases lunares se corresponde con el que
             // dibuja Minecraft
-            tiempoJugador += 24000 * ((faseLunar + 4) & 7); // & 7 = % 8 para enteros positivos
+            tiempoJugador += 24000 * (((faseLunar + 4) & 7) - tiempoMundo / 24000); // & 7 = % 8 para enteros positivos
         } else {
             // Hemisferio norte. El aspecto de las fases lunares está invertido respecto
             // al que dibuja Minecraft
-            tiempoJugador += 24000 * ((12 - faseLunar) & 7);
-        }
-
-        // Sumar días transcurridos en el mundo del servidor con cuidado de no alterar la fase lunar,
-        // siempre que ello no genere un desbordamiento
-        long ticksDiasTranscurridos = 192200 * (mundo.getFullTime() / 24000);
-        if (tiempoJugador + ticksDiasTranscurridos >= tiempoJugador) {
-            tiempoJugador += 192200 * (mundo.getFullTime() / 24000);
+            tiempoJugador += 24000 * (((12 - faseLunar) & 7) - tiempoMundo / 24000);
         }
 
         return tiempoJugador;
