@@ -451,8 +451,10 @@ public final class SimuladorTiempo
 
                         // Calcular el tiempo de los jugadores cerca del spawn, y guardarlo si se va a usar
                         if (w.getPlayerCount() > 0) {
-                            long tiempoJugador = arcoDiurnoSolar.getTiempoJugador(ahora, w, latitudSpawn, longitudSpawn);
-                            cacheTiemposCalculados.put(puntoAparicionMundoDiscretizado, tiempoJugador);
+                            cacheTiemposCalculados.put(
+                                puntoAparicionMundoDiscretizado,
+                                arcoDiurnoSolar.getTiempoJugador(ahora, w, latitudSpawn, longitudSpawn)
+                            );
                         }
                     }
 

@@ -61,7 +61,7 @@ final class ArcoDiurnoSolarTerrestre implements ArcoDiurnoSolar {
         // Sobreescribir el número de ticks transcurridos desde el comienzo del día actual
         // del servidor con los correspondientes a la visión del mundo del jugador
         long diasMundo = mundo.getFullTime() / 24000;
-        long tiempoJugador = getTiempoMundo(instante, latitud, longitud) + diasMundo;
+        long tiempoJugador = getTiempoMundo(instante, latitud, longitud) + diasMundo * 24000;
 
         long milisegundosUtc;
         try {
