@@ -20,7 +20,6 @@ package io.github.alextmjugador.khron.tiemporeal.astronomia;
 import java.time.Instant;
 
 import org.bukkit.World;
-import org.bukkit.entity.Player;
 
 /**
  * Modela las operaciones relevantes para este plugin acerca del arco diurno
@@ -30,10 +29,10 @@ import org.bukkit.entity.Player;
  */
 public interface ArcoDiurnoSolar {
     /**
-     * Obtiene el número de ticks desde el primer amanecer a enviar a los
-     * jugadores de un determinado mundo, vía
-     * {@link Player#setPlayerTime(long, boolean)}, a partir del instante de
-     * tiempo, latitud y longitud relevantes para un arco diurno.
+     * Obtiene el número de ticks desde el comienzo del primer día a enviar a
+     * los jugadores de un determinado mundo, en el formato aceptado por
+     * {@link World#setFullTime(long)}, a partir del instante de tiempo, latitud
+     * y longitud relevantes para un arco diurno.
      * <p>
      * Este valor es puramente cosmético. Afecta a las fases lunares, dificultad
      * regional y tiempo del día que computa el cliente, pero no a la lógica del
@@ -62,27 +61,28 @@ public interface ArcoDiurnoSolar {
     public long getTiempoJugador(Instant instante, World mundo, double latitud, double longitud);
 
     /**
-     * Obtiene el número de ticks desde el amanecer actual a establecer en un mundo,
-     * vía {@link World#setTime(long)}, a partir del instante de tiempo, latitud y
-     * longitud relevantes para un arco diurno.
+     * Obtiene el número de ticks desde el comienzo del día actual a establecer
+     * en un mundo, vía {@link World#setTime(long)}, a partir del instante de
+     * tiempo, latitud y longitud relevantes para un arco diurno.
      * <p>
-     * Este valor afecta a las mecánicas del juego, como la aparición de criaturas y
-     * la dificultad regional real.
+     * Este valor afecta a las mecánicas del juego, como la aparición de
+     * criaturas y la dificultad regional real.
      * </p>
      * <p>
-     * Los valores de retorno más esperables están en el intervalo [0, 24000), y se
-     * interpretan de acuerdo al método de Bukkit mencionado anteriormente. En
-     * particular, la aplicación de un valor de retorno menor que el anterior
+     * Los valores de retorno más esperables están en el intervalo [0, 24000), y
+     * se interpretan de acuerdo al método de Bukkit mencionado anteriormente.
+     * En particular, la aplicación de un valor de retorno menor que el anterior
      * provocará que el tiempo del mundo avance un día. Por ejemplo, si se ha
-     * aplicado el valor 23999 y luego se pretende aplicar el 0, el tiempo del mundo
-     * usado para calcular dificultad regional y demás mecánicas de juego será 24000.
+     * aplicado el valor 23999 y luego se pretende aplicar el 0, el tiempo del
+     * mundo usado para calcular dificultad regional y demás mecánicas de juego
+     * será 24000.
      * </p>
      *
-     * @param instante El instante de tiempo terrestre para el que se desea calcular
-     *                 este tiempo.
+     * @param instante El instante de tiempo terrestre para el que se desea
+     *                 calcular este tiempo.
      * @param latitud  La latitud del punto de un planeta para el que se desea
      *                 calcular este tiempo.
-     * @param longitud La longitud del punto de un plaeta para el que se desea
+     * @param longitud La longitud del punto de un planeta para el que se desea
      *                 calcular este tiempo.
      * @return El devandicho tiempo.
      * @throws IllegalArgumentException Si algún parámetro es inválido.

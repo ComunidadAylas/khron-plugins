@@ -58,14 +58,10 @@ final class ArcoDiurnoSolarTerrestre implements ArcoDiurnoSolar {
             throw new IllegalArgumentException("No se admite un mundo nulo para esta operación");
         }
 
-        long tiempoJugador = getTiempoMundo(instante, latitud, longitud);
-
-        // El tiempo usado por Bukkit es relativo aunque le digamos que no es relativo
-        // porque la documentación relativa a la relatividad del tiempo es relativamente mala.
-        // Gracias por hacer que lo relativo no sea realmente relativo y obligarme a hacerlo
-        // relativo, Bukkit
-        long tiempoMundo = mundo.getFullTime();
-        tiempoJugador -= tiempoMundo % 24000;
+        // Sobreescribir el número de ticks transcurridos desde el comienzo del día actual
+        // del servidor con los correspondientes a la visión del mundo del jugador
+        long diasMundo = mundo.getFullTime() / 24000;
+        long tiempoJugador = getTiempoMundo(instante, latitud, longitud) + diasMundo;
 
         long milisegundosUtc;
         try {
@@ -89,16 +85,16 @@ final class ArcoDiurnoSolarTerrestre implements ArcoDiurnoSolar {
 
         // Sumarle al tiempo relativo al amanecer actual el desfase apropiado para mostrar
         // la fase lunar que correspondería (para Minecraft, la primera fase lunar es luna llena)
-        long faseLunarMundo = tiempoMundo / 24000;
+        // Cada día del mundo es una fase lunar diferente, empezando en luna llena para el día 0
         if (Math.sin(latitud) < 0) {
             // Hemisferio sur (el ángulo ocupa el tercer o cuarto cuadrante en la circunferencia
             // goniométrica). El aspecto de las fases lunares se corresponde con el que
             // dibuja Minecraft
-            tiempoJugador += 24000 * (((faseLunar + 4) & 7) - faseLunarMundo); // & 7 = % 8 para enteros positivos
+            tiempoJugador += 24000 * (((faseLunar + 4) & 7) - diasMundo); // & 7 = % 8 para enteros positivos
         } else {
             // Hemisferio norte. El aspecto de las fases lunares está invertido respecto
             // al que dibuja Minecraft
-            tiempoJugador += 24000 * (((12 - faseLunar) & 7) - faseLunarMundo);
+            tiempoJugador += 24000 * (((12 - faseLunar) & 7) - diasMundo);
         }
 
         return tiempoJugador;

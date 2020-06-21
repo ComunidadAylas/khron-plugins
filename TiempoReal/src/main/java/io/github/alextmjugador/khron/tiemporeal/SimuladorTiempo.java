@@ -261,7 +261,7 @@ public final class SimuladorTiempo
             // simulado, y también hace que se note menos el retraso hasta la
             // próxima simulación en el caso de que vaya a otro mundo sí
             // simulado (solamente no se vería bien la fase de la luna por 0,5 s)
-            event.getPlayer().setPlayerTime(0, true);
+            event.getPlayer().resetPlayerTime();
         }
     }
 
@@ -330,7 +330,7 @@ public final class SimuladorTiempo
 
             for (Player p : w.getPlayers()) {
                 TiempoAtmosferico.restaurarJugador(p);
-                p.setPlayerTime(0, true);
+                p.resetPlayerTime();
             }
 
             iter.remove();
@@ -388,7 +388,7 @@ public final class SimuladorTiempo
             // con la del servidor
             for (Player p : w.getPlayers()) {
                 TiempoAtmosferico.restaurarJugador(p);
-                p.setPlayerTime(0, true);
+                p.resetPlayerTime();
             }
 
             if (tareaActualizacionSimulacion != null && mundosSimulados.isEmpty()) {
@@ -438,8 +438,7 @@ public final class SimuladorTiempo
                     // Establecer el tiempo del mundo en el servidor, usado para las mecánicas del juego,
                     // según lo calculado por el arco diurno configurado, si corresponde
                     if (tiempoSimulado) {
-                        long tiempoMundo = arcoDiurnoSolar.getTiempoMundo(ahora, latitudSpawn, longitudSpawn);
-                        w.setTime(tiempoMundo);
+                        w.setTime(arcoDiurnoSolar.getTiempoMundo(ahora, latitudSpawn, longitudSpawn));
 
                         // Discretizar la posición del punto de aparición y guardarla en la caché,
                         // para que jugadores cerca del punto de aparición puedan obtener el tiempo
@@ -449,8 +448,16 @@ public final class SimuladorTiempo
                             0,
                             Math.floor(puntoAparicionMundo.getZ() / umbralAgrupamiento)
                         );
-                        cacheTiemposCalculados.put(puntoAparicionMundoDiscretizado, tiempoMundo);
+
+                        // Calcular el tiempo de los jugadores cerca del spawn, y guardarlo si se va a usar
+                        if (w.getPlayerCount() > 0) {
+                            long tiempoJugador = arcoDiurnoSolar.getTiempoJugador(ahora, w, latitudSpawn, longitudSpawn);
+                            cacheTiemposCalculados.put(puntoAparicionMundoDiscretizado, tiempoJugador);
+                        }
                     }
+
+                    // Guardar el tiempo del mundo desde el comienzo del primer día, que usaremos luego
+                    long tiempoMundo = w.getFullTime();
 
                     // Calcular el clima del mundo si corresponde
                     if (climaSimulado) {
@@ -496,7 +503,15 @@ public final class SimuladorTiempo
                                     }
                                 );
 
-                                p.setPlayerTime(tiempoJugador, true);
+                                // El tiempo visible para un cliente es siempre relativo a otro tiempo,
+                                // porque el API de Bukkit está algo mal documentada en este aspecto. Véase:
+                                // https://github.com/Attano/Spigot-1.8/blob/9db48bc15e203179554b8d992ca6b0a528c8d300/net/minecraft/server/v1_8_R3/EntityPlayer.java#L1077
+                                // https://github.com/Attano/Spigot-1.8/blob/9db48bc15e203179554b8d992ca6b0a528c8d300/org/bukkit/craftbukkit/entity/CraftPlayer.java#L680
+                                // https://github.com/Attano/Spigot-1.8/blob/9db48bc15e203179554b8d992ca6b0a528c8d300/net/minecraft/server/v1_8_R3/PacketPlayOutUpdateTime.java#L5
+                                // https://github.com/Attano/Spigot-1.8/blob/9db48bc15e203179554b8d992ca6b0a528c8d300/net/minecraft/server/v1_8_R3/MinecraftServer.java#L745
+                                // Por tanto, lo más sencillo es enviarle a cada cliente la desviación del tiempo que deberían de ver
+                                // respecto al tiempo del servidor
+                                p.setPlayerTime(tiempoJugador - tiempoMundo, true);
                             } catch (ExecutionException exc) {
                                 getLogger().log(
                                     Level.WARNING,
