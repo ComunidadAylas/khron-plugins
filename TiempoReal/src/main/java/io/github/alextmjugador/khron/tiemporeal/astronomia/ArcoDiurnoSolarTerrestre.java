@@ -89,15 +89,16 @@ final class ArcoDiurnoSolarTerrestre implements ArcoDiurnoSolar {
 
         // Sumarle al tiempo relativo al amanecer actual el desfase apropiado para mostrar
         // la fase lunar que correspondería (para Minecraft, la primera fase lunar es luna llena)
+        long faseLunarMundo = tiempoMundo / 24000;
         if (Math.sin(latitud) < 0) {
             // Hemisferio sur (el ángulo ocupa el tercer o cuarto cuadrante en la circunferencia
             // goniométrica). El aspecto de las fases lunares se corresponde con el que
             // dibuja Minecraft
-            tiempoJugador += 24000 * (((faseLunar + 4) & 7) - tiempoMundo / 24000); // & 7 = % 8 para enteros positivos
+            tiempoJugador += 24000 * (((faseLunar + 4) & 7) - faseLunarMundo); // & 7 = % 8 para enteros positivos
         } else {
             // Hemisferio norte. El aspecto de las fases lunares está invertido respecto
             // al que dibuja Minecraft
-            tiempoJugador += 24000 * (((12 - faseLunar) & 7) - tiempoMundo / 24000);
+            tiempoJugador += 24000 * (((12 - faseLunar) & 7) - faseLunarMundo);
         }
 
         return tiempoJugador;
