@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Plugins de Paper del Proyecto Khron
 # Copyright (C) 2019 Comunidad Aylas
 # 
@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-function mostrarError {
+mostrarError() {
 	echo "! Ha ocurrido un error realizando las operaciones necesarias. Se aborta la ejecución del script."
 	exit
 }
@@ -26,7 +26,7 @@ if mvn javadoc:aggregate; then
 	echo "************"
 	echo "* ATENCIÓN *"
 	echo "************"
-	echo "Se realizarán comandos de git para cambiarse a la rama de la página de Javadoc. Estos comando pueden descartar cambios hechos en el repositorio local, y en general provocar pérdida de información".
+	echo "Se realizarán comandos de git para cambiarse a la rama de la página de Javadoc. Estos comando pueden descartar cambios hechos en el repositorio local."
 	echo "¿Quieres continuar con la ejecución del script? (S/N)"
 	read -r r
 	if [ "$r" = 's' ] || [ "$r" = 'S' ]; then

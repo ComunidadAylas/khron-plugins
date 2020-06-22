@@ -1,17 +1,17 @@
-#!/bin/bash
+#!/bin/sh
 # Plugins de Paper del Proyecto Khron
 # Copyright (C) 2019 Comunidad Aylas
-# 
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
 # published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Affero General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
@@ -21,14 +21,14 @@ readonly URL_DESCARGA_PAPER=https://papermc.io/ci/job/Paper-1.15/lastSuccessfulB
 # a partir de la variable de entorno PATH
 readonly EJECUTABLE_JAVA=
 
-function instalarPaper {
+instalarPaper() {
 	# Directorio donde residirá el servidor de Paper
-	mkdir -p tasks/servidor-paper
-	cd tasks/servidor-paper || return $?
+	mkdir -p scripts/servidor-paper
+	cd scripts/servidor-paper || return $?
 
 	# Si paperclip.jar existe y es un fichero de tamaño menor de 40 MiB, asumir que es una descarga parcial
 	# incorrecta y descartarla
-	if [[ -f paperclip.jar && $(wc -c paperclip.jar | cut -d" " -f1) -lt 41943040 ]]; then
+	if [ -f paperclip.jar ] && [ "$(wc -c paperclip.jar | cut -d" " -f1)" -lt 41943040 ]; then
 		rm paperclip.jar
 	fi
 
@@ -420,12 +420,12 @@ exit
 SCRIPT_REINICIO
 ) > start.sh
 	fi
-	
+
 	cd ../..
 }
 
-function arrancarPaper {
-	cd tasks/servidor-paper || return $?
+arrancarPaper() {
+	cd scripts/servidor-paper || return $?
 	echo "> Iniciando servidor Paper con soporte para JPDA mediante TCP/IP en el puerto 8000..."
 	echo
 	echo "************************************************************************"
@@ -437,13 +437,13 @@ function arrancarPaper {
 	return $?
 }
 
-function copiarPlugins {
+copiarPlugins() {
 	# Crear directorio donde residirán los plugins del servidor de Paper si hace falta
-	if [ ! -d "tasks/servidor-paper/plugins" ]; then
+	if [ ! -d "scripts/servidor-paper/plugins" ]; then
 		echo "> Creando directorio de plugins del servidor..."
 
 		# Propagar error que pudiese haber ocurrido con el sistema de ficheros
-		if ! mkdir -p tasks/servidor-paper/plugins; then
+		if ! mkdir -p scripts/servidor-paper/plugins; then
 			return $?
 		fi
 	fi
@@ -459,7 +459,7 @@ function copiarPlugins {
 
 		echo "> Copiando plugins empaquetados al directorio de plugins del servidor..."
 
-		if ! cp jar/*.jar tasks/servidor-paper/plugins; then
+		if ! cp jar/*.jar scripts/servidor-paper/plugins; then
 			echo "! Ha ocurrido un error al copiar los plugins empaquetados al directorio de plugins del servidor. Es muy posible que no se hayan colocado y, por tanto, no se carguen."
 		fi
 	fi
@@ -473,13 +473,13 @@ echo
 # Instalar Paper, si no lo está, y si todo va bien abrir el servidor
 if instalarPaper; then
 	copiarPlugins
-	if (! arrancarPaper) && [ -f "tasks/servidor-paper/paperclip.jar" ]; then
+	if (! arrancarPaper) && [ -f "scripts/servidor-paper/paperclip.jar" ]; then
 		echo "! Ha ocurrido un error arrancando el servidor de Paper. Esto puede deberse a un fichero paperclip.jar corrupto. ¿Quieres descargarlo de nuevo? (S/N) "
 		read -r r
 		case "$r" in
 			S|s)
 				clear
-				rm tasks/servidor-paper/paperclip.jar
+				rm scripts/servidor-paper/paperclip.jar
 				if instalarPaper; then
 					copiarPlugins
 					arrancarPaper
