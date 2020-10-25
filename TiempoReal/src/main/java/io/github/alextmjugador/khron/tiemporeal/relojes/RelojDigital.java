@@ -21,6 +21,7 @@ import java.time.ZonedDateTime;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.SoundCategory;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -35,12 +36,18 @@ import net.md_5.bungee.api.chat.TextComponent;
  *
  * @author AlexTMjugador
  */
-public final class RelojDigital extends Reloj {
+public final class RelojDigital extends Reloj<Byte> {
     /**
      * La fuente proporcionada por un paquete de recursos que contiene los iconos
      * usados por este reloj.
      */
     private static final String FUENTE_ICONOS = "khron:iconos_plugins";
+
+    /**
+     * El sonido que se reproducirá cuando el reloj avance una hora mientras está
+     * siendo empuñado por un jugador.
+     */
+    private static final String SONIDO_HORA = "custom.reloj_digital_pitidos";
 
     /**
      * Obtiene la única instancia del reloj digital completo en la JVM, creándola si
@@ -64,7 +71,8 @@ public final class RelojDigital extends Reloj {
 	protected BaseComponent formatearDisplay(ZonedDateTime hora, Player jugador, World mundo, boolean mundoConCicloDiaNoche) {
         TextComponent display = new TextComponent();
         TextComponent separadorDigitos = new TextComponent(":");
-        TextComponent componenteHora = new TextComponent(String.format("%02d", hora.getHour()));
+        int numeroHora = hora.getHour();
+        TextComponent componenteHora = new TextComponent(String.format("%02d", numeroHora));
         TextComponent componenteMinuto = new TextComponent(String.format("%02d", hora.getMinute()));
         int segundo = hora.getSecond();
         TextComponent componenteSegundo = new TextComponent(String.format("%02d", segundo));
@@ -82,6 +90,7 @@ public final class RelojDigital extends Reloj {
 
         if (mundoConCicloDiaNoche) {
             Location posicionJugador = jugador.getLocation();
+
             double temperaturaBioma = mundo.getTemperature(
                 posicionJugador.getBlockX(), posicionJugador.getBlockY(), posicionJugador.getBlockZ()
             );
@@ -132,6 +141,27 @@ public final class RelojDigital extends Reloj {
             iconoTiempo.setObfuscated(false);
 
             display.addExtra(iconoTiempo);
+
+            Byte ultimaHoraVista = getEstadoReloj(jugador);
+            if (ultimaHoraVista != null && ultimaHoraVista != numeroHora) {
+                jugador.playSound(
+                    posicionJugador, SONIDO_HORA, SoundCategory.MASTER, 1, 1
+                );
+
+                // Queremos que otros jugadores escuchen el reloj, pero en una
+                // categoría de sonido diferente
+                for (Player jugadorCercano : mundo.getNearbyPlayers(posicionJugador, 16)) {
+                    if (!jugadorCercano.equals(jugador)) {
+                        jugador.playSound(
+                            posicionJugador, SONIDO_HORA, SoundCategory.PLAYERS, 1, 1
+                        );
+                    }
+                }
+            }
+
+            if (ultimaHoraVista == null || ultimaHoraVista != numeroHora) {
+                setEstadoReloj(jugador, (byte) numeroHora);
+            }
         } else {
             componenteHora.setObfuscated(true);
             componenteMinuto.setObfuscated(true);

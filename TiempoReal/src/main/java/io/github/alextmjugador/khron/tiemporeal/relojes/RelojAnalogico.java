@@ -21,6 +21,7 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoField;
 
 import org.bukkit.Material;
+import org.bukkit.SoundCategory;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -35,7 +36,13 @@ import net.md_5.bungee.api.chat.TextComponent;
  *
  * @author AlexTMjugador
  */
-public final class RelojAnalogico extends Reloj {
+public final class RelojAnalogico extends Reloj<Byte> {
+    /**
+     * El sonido que se reproducirá cuando el jugador mantenga empuñado el reloj,
+     * para indicar el movimiento de las manecillas.
+     */
+    private static final String SONIDO_TICTAC = "custom.reloj_analogico_tictac";
+
     /**
      * Obtiene la única instancia del reloj digital completo en la JVM,
      * creándola si no lo ha sido ya.
@@ -60,11 +67,10 @@ public final class RelojAnalogico extends Reloj {
         TextComponent separadorDigitos = new TextComponent(":");
         TextComponent componenteHora = new TextComponent(String.format("%02d", hora.get(ChronoField.CLOCK_HOUR_OF_AMPM)));
         TextComponent componenteMinuto = new TextComponent(
-            String.format("%02d", Math.round(Math.max(hora.getMinute() / 2.0 - 0.5, 0)) * 2)
+            String.format("%02d", (int) (hora.getMinute() / 2.0) * 2)
         );
-        TextComponent componenteSegundo = new TextComponent(
-            String.format("%02d", Math.round(Math.max(hora.getSecond() / 2.0 - 0.5, 0)) * 2)
-        );
+        byte segundoMostrar = (byte) ((int) (hora.getSecond() / 2.0) * 2);
+        TextComponent componenteSegundo = new TextComponent(String.format("%02d", segundoMostrar));
 
         display.addExtra(componenteHora);
         display.addExtra(separadorDigitos);
@@ -72,13 +78,30 @@ public final class RelojAnalogico extends Reloj {
         display.addExtra(separadorDigitos);
         display.addExtra(componenteSegundo);
 
-        if (!mundoConCicloDiaNoche) {
+        if (mundoConCicloDiaNoche) {
+            Byte ultimoSegundoVisto = getEstadoReloj(jugador);
+            if (ultimoSegundoVisto != null && ultimoSegundoVisto != segundoMostrar) {
+                jugador.playSound(
+                    jugador.getLocation(),
+                    SONIDO_TICTAC, SoundCategory.MASTER, 0.1f, 1
+                );
+            }
+
+            if (ultimoSegundoVisto == null || ultimoSegundoVisto != segundoMostrar) {
+                setEstadoReloj(jugador, (byte) segundoMostrar);
+            }
+        } else {
             componenteHora.setObfuscated(true);
             componenteMinuto.setObfuscated(true);
             componenteSegundo.setObfuscated(true);
         }
 
         return display;
+    }
+
+    @Override
+    protected void onOcultarDisplay(Player jugador) {
+        jugador.stopSound(SONIDO_TICTAC, SoundCategory.MASTER);
     }
 
     /**

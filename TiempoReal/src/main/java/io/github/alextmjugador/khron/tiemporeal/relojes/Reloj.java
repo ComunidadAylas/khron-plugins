@@ -21,8 +21,8 @@ import static org.bukkit.Bukkit.getServer;
 
 import java.time.ZonedDateTime;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.bukkit.World;
 import org.bukkit.World.Environment;
@@ -54,9 +54,11 @@ import net.md_5.bungee.api.chat.TextComponent;
 /**
  * Modela un reloj, que muestra información de tiempo a quienes lo observan.
  *
+ * @param <T> El tipo de dato del estado del reloj que se puede asociar a un
+ *            jugador. Puede ser {@link Void} si no se desea asociar estado.
  * @author AlexTMjugador
  */
-public abstract class Reloj implements Listener {
+public abstract class Reloj<T> implements Listener {
     /**
      * El número de ticks que han de pasar entre ejecuciones consecutivas de la
      * tarea que se encarga de mostrar el display de tiempo a los jugadores
@@ -70,7 +72,7 @@ public abstract class Reloj implements Listener {
     /**
      * Los jugadores que están viendo un reloj en el instante de tiempo presente.
      */
-    private final Set<Player> jugadoresReloj = new LinkedHashSet<>(
+    private final Map<Player, T> jugadoresReloj = new LinkedHashMap<>(
         (int) (Math.max(getServer().getMaxPlayers() / 4, 8) / 0.75)
     );
 
@@ -296,7 +298,8 @@ public abstract class Reloj implements Listener {
     protected abstract boolean lePermiteStackVerReloj(Player jugador, ItemStack stack);
 
     /**
-     * Formatea el display de un reloj a mostrar al usuario.
+     * Formatea el display de un reloj a mostrar al usuario. Este método se ejecuta
+     * justo antes de enviarle al jugador el display actualizado de la hora.
      *
      * @param hora                  La hora a usar para formatear. No es nula.
      * @param jugador               El jugador que verá el display. No es nulo.
@@ -310,6 +313,43 @@ public abstract class Reloj implements Listener {
     protected abstract BaseComponent formatearDisplay(
         ZonedDateTime hora, Player jugador, World mundo, boolean mundoConCicloDiaNoche
     );
+
+    /**
+     * Método ejecutado cuando se va a ocultar el display. Las subclases pueden
+     * implementarlo de manera diferente para realizar acciones cuando se oculta el
+     * display. Por defecto, este método no hace nada.
+     *
+     * @param jugador El jugador al que se le va a ocultar el display. No es nulo.
+     */
+    protected void onOcultarDisplay(Player jugador) {}
+
+    /**
+     * Obtiene el estado del reloj asociado al jugador especificado, que se borra
+     * automáticamente cuando el reloj deja de ser empuñado, y se inicializa a un
+     * valor nulo cuando se vuelve a empuñar. Las subclases pueden usar este estado
+     * como crean conveniente para mejorar el display u otros propósitos.
+     *
+     * @param p El jugador del que obtener el estado de reloj asociado.
+     * @return Un valor nulo si el estado ha sido recién inicializado o el jugador
+     *         no tiene un estado de reloj asociado, o el valor que una subclase
+     *         haya decidido almacenar mientras el reloj está empuñado.
+     */
+    protected final T getEstadoReloj(Player p) {
+        return jugadoresReloj.get(p);
+    }
+
+    /**
+     * Establece el estado del reloj asociado al jugador especificado, que se borra
+     * automáticamente cuando el reloj deja de ser empuñado, y se inicializa a un
+     * valor nulo cuando se vuelve a empuñar. Las subclases pueden usar este estado
+     * como crean conveniente para mejorar el display u otros propósitos.
+     *
+     * @param p      El jugador del que establecer el estado de reloj asociado.
+     * @param estado El estado de reloj a asociar con el jugador.
+     */
+    protected final void setEstadoReloj(Player p, T estado) {
+        jugadoresReloj.put(p, estado);
+    }
 
     /**
      * Comprueba si a un jugador le corresponde ver el display en pantalla.
@@ -334,7 +374,9 @@ public abstract class Reloj implements Listener {
      */
     private void mostrarDisplay(Player p) {
         // Si somos el primer jugador en ver la hora, poner tarea en marcha
-        if (p != null && jugadoresReloj.add(p) && tareaMostrarDisplay == null) {
+        if (p != null && !jugadoresReloj.containsKey(p) && tareaMostrarDisplay == null) {
+            jugadoresReloj.put(p, null);
+
             tareaMostrarDisplay = new MostrarHora().runTaskTimer(
                 PluginTiempoReal.getPlugin(PluginTiempoReal.class), 0, TICKS_TAREA_DISPLAY
             );
@@ -348,6 +390,10 @@ public abstract class Reloj implements Listener {
      * @param p El jugador a eliminar de la lista.
      */
     private void ocultarDisplay(Player p) {
+        if (jugadoresReloj.containsKey(p)) {
+            onOcultarDisplay(p);
+        }
+
         jugadoresReloj.remove(p);
 
         // Si somos el último jugador en ver el reloj, parar la tarea
@@ -370,7 +416,7 @@ public abstract class Reloj implements Listener {
          */
         @Override
         public void run() {
-            Iterator<Player> iter = jugadoresReloj.iterator();
+            Iterator<Player> iter = jugadoresReloj.keySet().iterator();
             while (iter.hasNext()) {
                 Player p = iter.next();
 
