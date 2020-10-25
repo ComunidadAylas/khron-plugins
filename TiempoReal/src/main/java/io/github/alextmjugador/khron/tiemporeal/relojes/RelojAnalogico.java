@@ -18,6 +18,7 @@
 package io.github.alextmjugador.khron.tiemporeal.relojes;
 
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoField;
 
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -54,11 +55,10 @@ public final class RelojAnalogico extends Reloj {
     }
 
     @Override
-    protected BaseComponent formatearDisplay(ZonedDateTime hora, Player jugador, World mundo,
-            boolean mundoConCicloDiaNoche) {
+    protected BaseComponent formatearDisplay(ZonedDateTime hora, Player jugador, World mundo, boolean mundoConCicloDiaNoche) {
         TextComponent display = new TextComponent();
         TextComponent separadorDigitos = new TextComponent(":");
-        TextComponent componenteHora = new TextComponent(String.format("%02d", hora.getHour()));
+        TextComponent componenteHora = new TextComponent(String.format("%02d", hora.get(ChronoField.CLOCK_HOUR_OF_AMPM)));
         TextComponent componenteMinuto = new TextComponent(
             String.format("%02d", Math.round(Math.max(hora.getMinute() / 2.0 - 0.5, 0)) * 2)
         );
