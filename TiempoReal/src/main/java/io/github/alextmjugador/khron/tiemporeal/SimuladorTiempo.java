@@ -87,6 +87,13 @@ public final class SimuladorTiempo implements Listener, NotificableCambioConfigu
     private static final byte RADIO_MUESTREO_TEMPERATURA = 4;
 
     /**
+     * El número total de muestras de temperatura que se tomarán usando el parámetro
+     * {@link RADIO_MUESTREO_TEMPERATURA}.
+     */
+    private static final int TOTAL_MUESTRAS_TEMPERATURA =
+        (RADIO_MUESTREO_TEMPERATURA * 2 + 1) * (RADIO_MUESTREO_TEMPERATURA * 2 + 1);
+
+    /**
      * Error a mostrar cuando un operador o la consola intenten cambiar una
      * propiedad de un mundo simulada por esta clase.
      */
@@ -347,16 +354,14 @@ public final class SimuladorTiempo implements Listener, NotificableCambioConfigu
         int px = posicionJugador.getBlockX();
         int py = posicionJugador.getBlockY();
         int pz = posicionJugador.getBlockZ();
-        int numMuestras = 0;
         double muestrasTemperaturaAcumuladas = 0;
         for (int x = px - RADIO_MUESTREO_TEMPERATURA; x <= px + RADIO_MUESTREO_TEMPERATURA; ++x) {
             for (int z = pz - RADIO_MUESTREO_TEMPERATURA; z <= pz + RADIO_MUESTREO_TEMPERATURA; ++z) {
                 muestrasTemperaturaAcumuladas += w.getTemperature(x, py, z);
-                ++numMuestras;
             }
         }
 
-        return (float) (temperaturaBase * (muestrasTemperaturaAcumuladas / numMuestras));
+        return (float) (temperaturaBase * (muestrasTemperaturaAcumuladas / TOTAL_MUESTRAS_TEMPERATURA));
     }
 
     /**

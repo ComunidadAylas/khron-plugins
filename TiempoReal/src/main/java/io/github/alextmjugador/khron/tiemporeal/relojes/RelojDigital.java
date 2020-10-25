@@ -152,7 +152,7 @@ public final class RelojDigital extends Reloj<Byte> {
                 // categoría de sonido diferente
                 for (Player jugadorCercano : mundo.getNearbyPlayers(posicionJugador, 16)) {
                     if (!jugadorCercano.equals(jugador)) {
-                        jugador.playSound(
+                        jugadorCercano.playSound(
                             posicionJugador, SONIDO_HORA, SoundCategory.PLAYERS, 1, 1
                         );
                     }
