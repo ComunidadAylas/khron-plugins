@@ -72,14 +72,19 @@ import io.github.alextmjugador.khron.tiemporeal.meteorologia.TiempoAtmosferico;
  *
  * @author AlexTMjugador
  */
-public final class SimuladorTiempo
-    implements Listener, NotificableCambioConfiguracion<Map<String, ParametrosSimulacionMundo>>
-{
+public final class SimuladorTiempo implements Listener, NotificableCambioConfiguracion<Map<String, ParametrosSimulacionMundo>> {
     /**
      * Los ticks que transcurrirán entre dos actualizaciones consecutivas de la
      * simulación del tiempo de los mundos.
      */
     private static final int TICKS_ACTUALIZACION_SIMULACION = 10;
+
+    /**
+     * El radio en bloques de la circunferencia definida en torno a un bloque del
+     * que se desea obtener la temperatura, para calcular la temperatura de un
+     * bloque como la media entre la temperatura de los bloques en el radio.
+     */
+    private static final byte RADIO_MUESTREO_TEMPERATURA = 4;
 
     /**
      * Error a mostrar cuando un operador o la consola intenten cambiar una
@@ -318,27 +323,40 @@ public final class SimuladorTiempo
      * @throws NullPointerException Si el jugador es nulo.
      */
     public float getTemperatura(Player p) {
-        InformacionMeteorologica i;
-        DatosSimulacion m;
+        InformacionMeteorologica informacionMeteorologica;
+        DatosSimulacion datosSim;
         World w = p.getWorld();
         float temperaturaBase;
         Location posicionJugador = p.getLocation();
 
-        if ((i = ultimaInformacionMeteorologicaSimulada.get(p)) != null) {
+        if ((informacionMeteorologica = ultimaInformacionMeteorologicaSimulada.get(p)) != null) {
             // Usar la información meteorológica específica del jugador si está disponible
-            temperaturaBase = i.getTemperatura();
-        } else if ((m = mundosSimulados.get(w)) != null && m.getUltimaTemperaturaSimulada() != null) {
+            temperaturaBase = informacionMeteorologica.getTemperatura();
+        } else if ((datosSim = mundosSimulados.get(w)) != null && datosSim.getUltimaTemperaturaSimulada() != null) {
             // Usar la información meteorológica global al mundo
-            temperaturaBase = m.getUltimaTemperaturaSimulada();
+            temperaturaBase = datosSim.getUltimaTemperaturaSimulada();
         } else {
             // Si no tenemos información meteorológica, usar un valor neutral que da
             // valores apropiados para los valores de temperatura de biomas de Minecraft
             temperaturaBase = 25;
         }
 
-        return (float) (temperaturaBase * w.getTemperature(
-            posicionJugador.getBlockX(), posicionJugador.getBlockY(), posicionJugador.getBlockZ()
-        ));
+        // La temperatura puede variar abruptamente de un bloque a otro debido al cambio
+        // de bioma. Para evitar eso tomamos (RADIO_MUESTREO_TEMPERATURA * 2 + 1) ^ 2 muestras
+        // alrededor de la posición deseada y calculamos su media
+        int px = posicionJugador.getBlockX();
+        int py = posicionJugador.getBlockY();
+        int pz = posicionJugador.getBlockZ();
+        int numMuestras = 0;
+        double muestrasTemperaturaAcumuladas = 0;
+        for (int x = px - RADIO_MUESTREO_TEMPERATURA; x <= px + RADIO_MUESTREO_TEMPERATURA; ++x) {
+            for (int z = pz - RADIO_MUESTREO_TEMPERATURA; z <= pz + RADIO_MUESTREO_TEMPERATURA; ++z) {
+                muestrasTemperaturaAcumuladas += w.getTemperature(x, py, z);
+                ++numMuestras;
+            }
+        }
+
+        return (float) (temperaturaBase * (muestrasTemperaturaAcumuladas / numMuestras));
     }
 
     /**
