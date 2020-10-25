@@ -17,7 +17,8 @@
  */
 package io.github.alextmjugador.khron.tiemporeal.meteorologia;
 
-import java.util.function.Consumer;
+import java.util.Map.Entry;
+import java.util.function.BiConsumer;
 
 /**
  * Describe las operaciones relevantes para este plugin acerca de un clima, que
@@ -45,8 +46,9 @@ public interface Clima {
      *                                          tiempo atmosférico actual para
      *                                          las coordenadas especificadas.
      */
-    public TiempoAtmosferico calcularTiempoAtmosfericoActual(double latitud, double longitud)
-        throws MeteorologiaDesconocidaException;
+    public Entry<TiempoAtmosferico, InformacionMeteorologica> calcularTiempoAtmosfericoActual(
+        double latitud, double longitud
+    ) throws MeteorologiaDesconocidaException;
 
     /**
      * Realiza una operación tras computar el tiempo atmosférico para una
@@ -58,16 +60,17 @@ public interface Clima {
      *                 atmosférico hace.
      * @param callback La función a ejecutar cuando se complete el cálculo, para
      *                 hacer lo pertinente con él, que recibe de parámetro el
-     *                 tiempo atmosférico calculado. La ejecución de este
-     *                 callback se realiza en el contexto del hilo principal del
-     *                 servidor. La ejecución se este callback no se garantiza
-     *                 en caso de que ocurran errores.
+     *                 tiempo atmosférico e información meteorológica
+     *                 calculadas. La ejecución de este callback se realiza en
+     *                 el contexto del hilo principal del servidor. La ejecución
+     *                 se este callback no se garantiza en caso de que ocurran
+     *                 errores.
      * @throws MeteorologiaDesconocidaException Si no se ha podido calcular el
      *                                          tiempo atmosférico actual para
      *                                          las coordenadas especificadas.
      */
     public void calcularTiempoAtmosfericoActual(
-        double latitud, double longitud, Consumer<TiempoAtmosferico> callback
+        double latitud, double longitud, BiConsumer<TiempoAtmosferico, InformacionMeteorologica> callback
     ) throws MeteorologiaDesconocidaException;
 
     /**

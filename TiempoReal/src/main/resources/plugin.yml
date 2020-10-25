@@ -4,7 +4,7 @@ version: ${version}
 author: Khron. Para más información ver repositorio de GitHub
 main: io.github.alextmjugador.khron.tiemporeal.PluginTiempoReal
 depend: [LibConfig]
-api-version: 1.15
+api-version: 1.16
 commands:
     trconfig:
         description: Cambia la configuración.
@@ -29,15 +29,15 @@ permissions:
         description: Permite cambiar todos los parámetros de configuración del plugin.
         children:
             tiemporeal.trconfig.mundosSimulacionYParametros: true
-            tiemporeal.trconfig.textoRelojDigital: true
-            tiemporeal.trconfig.textoRelojDigitalDimensionSinCiclo: true
+            tiemporeal.trconfig.textoReloj: true
+            tiemporeal.trconfig.textoRelojDimensionSinCiclo: true
             tiemporeal.trconfig.claveWeatherbit: true
     tiemporeal.trconfig.mundosSimulacionYParametros:
         description: Permite cambiar los mundos en los que ${name} simula un ciclo diurno de longitud realista, junto con los parámetros usados para la simulación del ciclo diurno.
-    tiemporeal.trconfig.textoRelojDigital:
-        description: Permite cambiar el texto que ${name} mostrará a los jugadores cuando empuñen un reloj digital.
-    tiemporeal.trconfig.textoRelojDigitalDimensionSinCiclo:
-        description: Permite cambiar el texto que ${name} mostrará a los jugadores cuando empuñen un reloj digital, en dimensiones donde no hay un ciclo día-noche.
+    tiemporeal.trconfig.textoReloj:
+        description: Permite cambiar el texto que ${name} mostrará a los jugadores cuando empuñen un reloj.
+    tiemporeal.trconfig.textoRelojDimensionSinCiclo:
+        description: Permite cambiar el texto que ${name} mostrará a los jugadores cuando empuñen un reloj, en dimensiones donde no hay un ciclo día-noche.
     tiemporeal.trconfig.claveWeatherbit:
         description: Establece la clave a usar para autenticarse contra la API de Weatherbit.
     tiemporeal.trrecargarconfig:

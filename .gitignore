@@ -191,5 +191,6 @@ $RECYCLE.BIN/
 javadoc/
 # Directorios de ficheros generados por scripts
 /scripts/servidor-paper/
+/scripts/*-decompilado/
 # Ficheros basura creados por Eclipse
 .classpath

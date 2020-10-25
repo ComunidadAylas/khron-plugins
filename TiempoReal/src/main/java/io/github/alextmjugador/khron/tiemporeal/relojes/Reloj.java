@@ -19,11 +19,13 @@ package io.github.alextmjugador.khron.tiemporeal.relojes;
 
 import static org.bukkit.Bukkit.getServer;
 
+import java.time.ZonedDateTime;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.bukkit.World;
+import org.bukkit.World.Environment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -44,6 +46,10 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import io.github.alextmjugador.khron.tiemporeal.PluginTiempoReal;
+import io.github.alextmjugador.khron.tiemporeal.SimuladorTiempo;
+import io.github.alextmjugador.khron.tiemporeal.configuraciones.TextoReloj;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
 
 /**
  * Modela un reloj, que muestra información de tiempo a quienes lo observan.
@@ -88,7 +94,7 @@ public abstract class Reloj implements Listener {
     /**
      * Detiene la muestra de display de relojes para todos los jugadores.
      */
-    public void ocultarTodosLosDisplay() {
+    public final void ocultarTodosLosDisplay() {
         if (tareaMostrarDisplay != null) {
             tareaMostrarDisplay.cancel();
             tareaMostrarDisplay = null;
@@ -290,14 +296,20 @@ public abstract class Reloj implements Listener {
     protected abstract boolean lePermiteStackVerReloj(Player jugador, ItemStack stack);
 
     /**
-     * Obtiene el texto del display del reloj a mostrarle a un jugador en la barra
-     * de acción.
+     * Formatea el display de un reloj a mostrar al usuario.
      *
-     * @param jugador El jugador al que mostrarle el display. No es nulo.
-     * @param mundo   El mundo en el que se encuentra el jugador. No es nulo.
-     * @return El texto a mostrar, no nulo.
+     * @param hora                  La hora a usar para formatear. No es nula.
+     * @param jugador               El jugador que verá el display. No es nulo.
+     * @param mundo                 El mundo del que se ha obtenido la hora. No es
+     *                              nulo.
+     * @param mundoConCicloDiaNoche Verdadero si el mundo tiene una hora válida,
+     *                              debido a que tiene un ciclo de día-noche.
+     * @return Un subcomponente de display, que se incorporará en el texto final que
+     *         se mostrará.
      */
-    protected abstract String obtenerTextoDisplay(Player jugador, World mundo);
+    protected abstract BaseComponent formatearDisplay(
+        ZonedDateTime hora, Player jugador, World mundo, boolean mundoConCicloDiaNoche
+    );
 
     /**
      * Comprueba si a un jugador le corresponde ver el display en pantalla.
@@ -369,11 +381,40 @@ public abstract class Reloj implements Listener {
                 if (!leCorrespondeVerDisplay(p)) {
                     iter.remove();
                 } else {
-                    // TODO: usar un nuevo gestor de barra de acción simple que junte varios mensajes
-                    // de la barra de acción en uno solo y mande ese; el anterior gestor era
-                    // demasiado complejo, dependía de una biblioteca algo fea y no funcionaba
-                    // como esperaba
-                    p.sendActionBar(obtenerTextoDisplay(p, p.getWorld()));
+                    World mundo = p.getWorld();
+                    PluginTiempoReal plugin = PluginTiempoReal.getPlugin(PluginTiempoReal.class);
+                    ZonedDateTime hora = SimuladorTiempo.get().getHoraMundo(mundo);
+
+                    boolean mundoConCicloDiaNoche = mundo.getEnvironment().equals(Environment.NORMAL);
+
+                    String textoReloj = mundoConCicloDiaNoche ? plugin.getTextoReloj()
+                        : plugin.getTextoRelojDimensionSinCiclo();
+
+                    // Buscar el componente de texto que contiene la palabra clave a sustituir por
+                    // el display.
+                    // Siempre existe uno y solo uno
+                    BaseComponent[] componentesTextoReloj = TextComponent.fromLegacyText(textoReloj);
+                    TextComponent componenteTextoDisplay = null;
+                    for (int i = 0; i < componentesTextoReloj.length && componenteTextoDisplay == null; ++i) {
+                        BaseComponent componente = componentesTextoReloj[i];
+                        if (componente instanceof TextComponent) {
+                            TextComponent componenteTexto = (TextComponent) componente;
+
+                            if (componenteTexto.getText().contains(TextoReloj.DISPLAY)) {
+                                componenteTextoDisplay = componenteTexto;
+                            }
+                        }
+                    }
+
+                    BaseComponent display = formatearDisplay(hora, p, mundo, mundoConCicloDiaNoche);
+
+                    // Reemplazar la palabra clave por el componente generado
+                    componenteTextoDisplay.setText(componenteTextoDisplay.getText().replace(TextoReloj.DISPLAY, ""));
+                    componenteTextoDisplay.addExtra(display);
+
+                    // TODO: usar un nuevo gestor de barra de acción simple que vaya alternando
+                    // entre diferentes mensajes de diferentes plugins
+                    p.sendActionBar(componentesTextoReloj);
                 }
             }
 

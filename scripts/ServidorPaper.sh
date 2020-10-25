@@ -16,7 +16,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 # El URL desde el que se descargará el JAR principal de Paper
-readonly URL_DESCARGA_PAPER=https://papermc.io/ci/job/Paper-1.15/lastSuccessfulBuild/artifact/paperclip.jar
+readonly URL_DESCARGA_PAPER=https://papermc.io/ci/job/Paper-1.16/lastSuccessfulBuild/artifact/paperclip.jar
 # El ejecutable de Java a usar. Si se deja en blanco, se deducirá
 # a partir de la variable de entorno PATH
 readonly EJECUTABLE_JAVA=
@@ -35,20 +35,19 @@ instalarPaper() {
 	# Si tenemos un paperclip.jar, solo lo descargaremos si el ofrecido por el servidor es más reciente que el que tenemos
 	echo "> Descargando Paper..."
 	if [ -f 'paperclip.jar' ]; then
-		curl -L -z paperclip.jar -o paperclip.jar -w "%{http_code}" $URL_DESCARGA_PAPER > codigo_http
+		codigo_http=$(curl -L -z paperclip.jar -o paperclip.jar -w "%{http_code}" $URL_DESCARGA_PAPER)
 	else
-		curl -L -o paperclip.jar -w "%{http_code}" $URL_DESCARGA_PAPER > codigo_http
+		codigo_http=$(curl -L -o paperclip.jar -w "%{http_code}" $URL_DESCARGA_PAPER)
 	fi
 
 	# Propagar error que pudiese haber ocurrido durante la descarga
 	if [ $? -ne 0 ]; then
-		rm codigo_http
 		cd ../..
 		return $?
 	fi
 
 	# Si acabamos de descargar el fichero paperclip.jar, realizar tareas de configuración inicial del servidor
-	if [ "$(cat codigo_http && rm codigo_http)" = 200 ]; then
+	if [ "$codigo_http" -ge 200 ] && [ "$codigo_http" -lt 400 ]; then
 		echo "> Configurando servidor Paper..."
 		# Aplicar configuraciones predeterminadas del servidor
 		(cat <<SERVER_PROPERTIES

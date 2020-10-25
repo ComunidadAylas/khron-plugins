@@ -26,9 +26,10 @@ import io.github.alextmjugador.khron.libconfig.PluginConfigurable;
 import io.github.alextmjugador.khron.tiemporeal.configuraciones.ClaveWeatherbit;
 import io.github.alextmjugador.khron.tiemporeal.configuraciones.MapaParametrosSimulacionMundo;
 import io.github.alextmjugador.khron.tiemporeal.configuraciones.ParametrosSimulacionMundo;
-import io.github.alextmjugador.khron.tiemporeal.configuraciones.TextoRelojDigital;
-import io.github.alextmjugador.khron.tiemporeal.configuraciones.TextoRelojDigitalDimensionSinCiclo;
-import io.github.alextmjugador.khron.tiemporeal.relojes.RelojDigitalBasico;
+import io.github.alextmjugador.khron.tiemporeal.configuraciones.TextoReloj;
+import io.github.alextmjugador.khron.tiemporeal.configuraciones.TextoRelojDimensionSinCiclo;
+import io.github.alextmjugador.khron.tiemporeal.relojes.RelojAnalogico;
+import io.github.alextmjugador.khron.tiemporeal.relojes.RelojDigital;
 
 import static org.bukkit.Bukkit.getPluginManager;
 
@@ -63,15 +64,15 @@ public final class PluginTiempoReal extends PluginConfigurable {
 
     /**
      * El parámetro de configuración que representa el texto a mostrar cuando un
-     * jugador empuña un reloj digital.
+     * jugador empuña un reloj.
      */
-    private TextoRelojDigital textoRelojDigital;
+    private TextoReloj textoReloj;
 
     /**
      * El parámetro de configuración que indica el texto a mostrar cuando un jugador
-     * empuña un reloj digital, en una dimensión que no tenga un ciclo día-noche.
+     * empuña un reloj en una dimensión que no tenga un ciclo día-noche.
      */
-    private TextoRelojDigitalDimensionSinCiclo textoRelojDigitalDimensionSinCiclo;
+    private TextoRelojDimensionSinCiclo textoRelojDimensionSinCiclo;
 
     /**
      * El parámetro de configuración que contiene la clave a usar para
@@ -91,12 +92,12 @@ public final class PluginTiempoReal extends PluginConfigurable {
 
         // Crear los objetos que representan parámetros de configuración e inicializarlos
         this.parametrosSimulacionMundo = new MapaParametrosSimulacionMundo();
-        this.textoRelojDigital = new TextoRelojDigital();
-        this.textoRelojDigitalDimensionSinCiclo = new TextoRelojDigitalDimensionSinCiclo();
+        this.textoReloj = new TextoReloj();
+        this.textoRelojDimensionSinCiclo = new TextoRelojDimensionSinCiclo();
         this.claveWeatherbit = new ClaveWeatherbit();
 
         boolean configuracionLeida = leerParametrosConfiguracion(
-            parametrosSimulacionMundo, textoRelojDigital, textoRelojDigitalDimensionSinCiclo,
+            parametrosSimulacionMundo, textoReloj, textoRelojDimensionSinCiclo,
             claveWeatherbit
         );
 
@@ -104,7 +105,7 @@ public final class PluginTiempoReal extends PluginConfigurable {
             // Registrar comandos del plugin
             TabExecutor ejecutorComandos = new ComandosConfiguracion(
                 COMANDO_ESTABLECER_CONFIG, COMANDO_RECARGAR_CONFIG,
-                parametrosSimulacionMundo, textoRelojDigital, textoRelojDigitalDimensionSinCiclo,
+                parametrosSimulacionMundo, textoReloj, textoRelojDimensionSinCiclo,
                 claveWeatherbit
             );
             getCommand(COMANDO_ESTABLECER_CONFIG).setExecutor(ejecutorComandos);
@@ -117,7 +118,8 @@ public final class PluginTiempoReal extends PluginConfigurable {
 
             // Registrar eventos
             getPluginManager().registerEvents(SimuladorTiempo.get(), this);
-            getPluginManager().registerEvents(RelojDigitalBasico.get(), this);
+            getPluginManager().registerEvents(RelojDigital.get(), this);
+            getPluginManager().registerEvents(RelojAnalogico.get(), this);
 
             inicializado = true;
         }
@@ -130,7 +132,7 @@ public final class PluginTiempoReal extends PluginConfigurable {
     public void onDisable() {
         if (inicializado) {
             SimuladorTiempo.get().detenerSimulacion();
-            RelojDigitalBasico.get().ocultarTodosLosDisplay();
+            RelojDigital.get().ocultarTodosLosDisplay();
         }
     }
 
@@ -146,25 +148,25 @@ public final class PluginTiempoReal extends PluginConfigurable {
 
     /**
      * Obtiene el valor actual del parámetro de configuración que indica el texto a
-     * mostrar cuando un jugador empuña un reloj digital.
+     * mostrar cuando un jugador empuña un reloj.
      *
      * @return El devandicho valor del parámetro de configuración. Puede ser nulo si
      *         todavía no se ha inicializado la configuración del plugin.
      */
-    public String getTextoRelojDigital() {
-        return textoRelojDigital == null ? null : textoRelojDigital.getValor();
+    public String getTextoReloj() {
+        return textoReloj == null ? null : textoReloj.getValor();
     }
 
     /**
      * Obtiene el valor actual del parámetro de configuración que indica el texto a
-     * mostrar cuando un jugador empuña un reloj digital, en una dimensión que no
-     * tenga un ciclo día-noche.
+     * mostrar cuando un jugador empuña un reloj en una dimensión que no tenga un
+     * ciclo día-noche.
      *
      * @return El devandicho valor del parámetro de configuración. Puede ser nulo si
      *         todavía no se ha inicializado la configuración del plugin.
      */
-    public String getTextoRelojDigitalDimensionSinCiclo() {
-        return textoRelojDigitalDimensionSinCiclo == null ? null : textoRelojDigitalDimensionSinCiclo.getValor();
+    public String getTextoRelojDimensionSinCiclo() {
+        return textoRelojDimensionSinCiclo == null ? null : textoRelojDimensionSinCiclo.getValor();
     }
 
     /**

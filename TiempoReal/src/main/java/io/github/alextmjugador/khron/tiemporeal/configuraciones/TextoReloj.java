@@ -24,11 +24,11 @@ import io.github.alextmjugador.khron.tiemporeal.PluginTiempoReal;
 
 /**
  * Modela un parámetro de configuración que contiene el texto a mostrar cuando
- * un jugador empuñe un reloj digital, para que vea su display.
+ * un jugador empuñe un reloj, para que vea su pantalla.
  *
  * @author AlexTMjugador
  */
-public class TextoRelojDigital extends ParametroConfiguracion<String, String> {
+public class TextoReloj extends ParametroConfiguracion<String, String> {
     /**
      * La palabra clave que debe de contener el valor del parámetro de configuración
      * para ser válido. Se sustituirá por el display del reloj.
@@ -38,19 +38,19 @@ public class TextoRelojDigital extends ParametroConfiguracion<String, String> {
     /**
      * La ruta en el fichero de configuración hacia este parámetro de configuración.
      */
-    private static final String RUTA_CONFIG = "Texto para relojes digitales";
+    private static final String RUTA_CONFIG = "Texto para relojes";
 
     /**
      * El identificador de este parámetro de configuración en el código y en el
      * comando asociado para cambiarlo.
      */
-    private static final String ID_CONFIG = "textoRelojDigital";
+    private static final String ID_CONFIG = "textoReloj";
 
     /**
      * El permiso necesario para ejecutar un comando que cambie el valor de este
      * parámetro de configuración.
      */
-    private static final String PERMISO_CONFIG = "tiemporeal.trconfig.textoRelojDigital";
+    private static final String PERMISO_CONFIG = "tiemporeal.trconfig.textoReloj";
 
     /**
      * El número máximo de caracteres que el valor puede tomar.
@@ -63,11 +63,11 @@ public class TextoRelojDigital extends ParametroConfiguracion<String, String> {
      */
     private String valorSinProcesar;
 
-    public TextoRelojDigital() {
+    public TextoReloj() {
         this(RUTA_CONFIG, ID_CONFIG, PERMISO_CONFIG);
     }
 
-    protected TextoRelojDigital(String rutaConfig, String idCondig, String permisoConfig) {
+    protected TextoReloj(String rutaConfig, String idCondig, String permisoConfig) {
         super(PluginTiempoReal.getProvidingPlugin(PluginTiempoReal.class), rutaConfig, idCondig, permisoConfig);
     }
 
@@ -98,9 +98,9 @@ public class TextoRelojDigital extends ParametroConfiguracion<String, String> {
 
     /**
      * {@inheritDoc} Debe de contener una sola vez la cadena de texto determinada
-     * por el atributo estático {@link DISPLAY}, que el plugin
-     * reemplazará por la hora actual. Tampoco debe de ser mayor de
-     * {@link CARACTERES_MAX} caracteres.
+     * por el atributo estático {@link DISPLAY}, que el plugin reemplazará por la
+     * hora actual, al final. Tampoco debe de ser mayor de {@link CARACTERES_MAX}
+     * caracteres.
      *
      * @return {@inheritDoc}
      */
@@ -112,7 +112,8 @@ public class TextoRelojDigital extends ParametroConfiguracion<String, String> {
             int indicePrimeraAparicion = otroValor.indexOf(DISPLAY);
 
             toret = indicePrimeraAparicion >= 0 &&
-                indicePrimeraAparicion == otroValor.lastIndexOf(DISPLAY);
+                indicePrimeraAparicion == otroValor.lastIndexOf(DISPLAY) &&
+                indicePrimeraAparicion == otroValor.length() - DISPLAY.length();
         }
 
         return toret;

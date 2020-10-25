@@ -29,7 +29,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
@@ -62,6 +62,7 @@ import io.github.alextmjugador.khron.libconfig.NotificableCambioConfiguracion;
 import io.github.alextmjugador.khron.tiemporeal.astronomia.ArcoDiurnoSolar;
 import io.github.alextmjugador.khron.tiemporeal.configuraciones.ParametrosSimulacionMundo;
 import io.github.alextmjugador.khron.tiemporeal.meteorologia.Clima;
+import io.github.alextmjugador.khron.tiemporeal.meteorologia.InformacionMeteorologica;
 import io.github.alextmjugador.khron.tiemporeal.meteorologia.MeteorologiaDesconocidaException;
 import io.github.alextmjugador.khron.tiemporeal.meteorologia.TiempoAtmosferico;
 
@@ -103,7 +104,7 @@ public final class SimuladorTiempo
     /**
      * Los mundos que se están simulando actualmente.
      */
-    private final Map<World, Boolean> mundosSimulados = new HashMap<>(
+    private final Map<World, DatosSimulacion> mundosSimulados = new HashMap<>(
         (int) (getServer().getWorlds().size() / 0.75)
     );
 
@@ -133,6 +134,13 @@ public final class SimuladorTiempo
      * El último momento simulado en los ciclos diurnos de todos los mundos.
      */
     private Instant ultimoMomentoSimulado = null;
+
+    /**
+     * La última información meteorológica simulada para cada jugador.
+     */
+    private final Map<Player, InformacionMeteorologica> ultimaInformacionMeteorologicaSimulada = new HashMap<>(
+        (int) ((getServer().getMaxPlayers() + 1) / 0.75)
+    );
 
     /**
      * Restringe la instanciación de este objeto.
@@ -255,13 +263,18 @@ public final class SimuladorTiempo
     @EventHandler(ignoreCancelled = true)
     public void onPlayerChangeWorld(PlayerChangedWorldEvent event) {
         if (mundosSimulados.containsKey(event.getFrom())) {
+            Player p = event.getPlayer();
+
             // Restaurar sincronización predeterminada de la hora del cliente
             // con la del servidor. Esto corrige una desincronización en caso
             // de que el jugador vaya a un mundo cuyo ciclo no está siendo
             // simulado, y también hace que se note menos el retraso hasta la
             // próxima simulación en el caso de que vaya a otro mundo sí
             // simulado (solamente no se vería bien la fase de la luna por 0,5 s)
-            event.getPlayer().resetPlayerTime();
+            p.resetPlayerTime();
+
+            // La información meteorológica del mundo anterior tampoco es adecuada
+            ultimaInformacionMeteorologicaSimulada.remove(p);
         }
     }
 
@@ -271,6 +284,7 @@ public final class SimuladorTiempo
      *
      * @param w El mundo del que obtener la hora.
      * @return La hora actual del mundo, no nula.
+     * @throws NullPointerException Si el mundo es nulo.
      */
     public ZonedDateTime getHoraMundo(World w) {
         ZonedDateTime hora;
@@ -297,6 +311,37 @@ public final class SimuladorTiempo
     }
 
     /**
+     * Obtiene la temperatura ambiente en la ubicación del jugador especificado.
+     *
+     * @param p El jugador de cuya ubicación se obtendrá la temperatura.
+     * @return La temperatura buscada, en grados Celsius.
+     * @throws NullPointerException Si el jugador es nulo.
+     */
+    public float getTemperatura(Player p) {
+        InformacionMeteorologica i;
+        DatosSimulacion m;
+        World w = p.getWorld();
+        float temperaturaBase;
+        Location posicionJugador = p.getLocation();
+
+        if ((i = ultimaInformacionMeteorologicaSimulada.get(p)) != null) {
+            // Usar la información meteorológica específica del jugador si está disponible
+            temperaturaBase = i.getTemperatura();
+        } else if ((m = mundosSimulados.get(w)) != null && m.getUltimaTemperaturaSimulada() != null) {
+            // Usar la información meteorológica global al mundo
+            temperaturaBase = m.getUltimaTemperaturaSimulada();
+        } else {
+            // Si no tenemos información meteorológica, usar un valor neutral que da
+            // valores apropiados para los valores de temperatura de biomas de Minecraft
+            temperaturaBase = 25;
+        }
+
+        return (float) (temperaturaBase * w.getTemperature(
+            posicionJugador.getBlockX(), posicionJugador.getBlockY(), posicionJugador.getBlockZ()
+        ));
+    }
+
+    /**
      * Comienza la simulación del tiempo de todos los mundos que se especifiquen
      * en la configuración, ya cargada.
      */
@@ -319,14 +364,14 @@ public final class SimuladorTiempo
             ultimoMomentoSimulado = null;
         }
 
-        Iterator<Entry<World, Boolean>> iter = mundosSimulados.entrySet().iterator();
+        Iterator<Entry<World, DatosSimulacion>> iter = mundosSimulados.entrySet().iterator();
         while (iter.hasNext()) {
-            Entry<World, Boolean> entrada = iter.next();
+            Entry<World, DatosSimulacion> entrada = iter.next();
             World w = entrada.getKey();
 
             TiempoAtmosferico.restaurarMundo(w);
 
-            w.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, entrada.getValue());
+            w.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, entrada.getValue().haciaCicloDiaNoche());
 
             for (Player p : w.getPlayers()) {
                 TiempoAtmosferico.restaurarJugador(p);
@@ -335,6 +380,8 @@ public final class SimuladorTiempo
 
             iter.remove();
         }
+
+        ultimaInformacionMeteorologicaSimulada.clear();
     }
 
     /**
@@ -360,7 +407,11 @@ public final class SimuladorTiempo
      * @param w El mundo del que comenzar su tiempo.
      */
     private void comenzarSimulacion(World w) {
-        if (w != null && mundosSimulados.putIfAbsent(w, w.getGameRuleValue(GameRule.DO_DAYLIGHT_CYCLE)) == null) {
+        DatosSimulacion anterioresDatos = mundosSimulados.putIfAbsent(
+            w, new DatosSimulacion(w.getGameRuleValue(GameRule.DO_DAYLIGHT_CYCLE), null)
+        );
+
+        if (w != null && anterioresDatos == null) {
             w.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
 
             if (tareaActualizacionSimulacion == null) {
@@ -377,18 +428,19 @@ public final class SimuladorTiempo
      * @param w El mundo del que detener la simulación del tiempo.
      */
     private void detenerSimulacion(World w) {
-        Boolean estadoPrevioGamerule = mundosSimulados.remove(w);
+        DatosSimulacion datosSimulacion = mundosSimulados.remove(w);
 
-        if (estadoPrevioGamerule != null) {
+        if (datosSimulacion != null) {
             TiempoAtmosferico.restaurarMundo(w);
 
-            w.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, estadoPrevioGamerule);
+            w.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, datosSimulacion.haciaCicloDiaNoche());
 
             // Restaurar sincronización predeterminada de la hora del cliente
             // con la del servidor
             for (Player p : w.getPlayers()) {
                 TiempoAtmosferico.restaurarJugador(p);
                 p.resetPlayerTime();
+                ultimaInformacionMeteorologicaSimulada.remove(p);
             }
 
             if (tareaActualizacionSimulacion != null && mundosSimulados.isEmpty()) {
@@ -413,7 +465,9 @@ public final class SimuladorTiempo
             Map<String, ParametrosSimulacionMundo> parametrosSimulacionMundos = PluginTiempoReal
                 .getPlugin(PluginTiempoReal.class).getParametrosSimulacionMundo();
 
-            for (World w : mundosSimulados.keySet()) {
+            for (Entry<World, DatosSimulacion> entrada : mundosSimulados.entrySet()) {
+                World w = entrada.getKey();
+                DatosSimulacion datosSimulacion = entrada.getValue();
                 ParametrosSimulacionMundo parametrosSimulacionMundo = parametrosSimulacionMundos.get(w.getName());
 
                 // Si no tenemos los parámetros de simulación del mundo para este mundo es porque acabamos de cambiar
@@ -465,8 +519,9 @@ public final class SimuladorTiempo
                     if (climaSimulado) {
                         actualizarTiempoAtmosferico(
                             clima, latitudSpawn, longitudSpawn, maximosCalculosClimaDia,
-                            (TiempoAtmosferico t) -> {
+                            (TiempoAtmosferico t, InformacionMeteorologica i) -> {
                                 t.aplicarAMundo(w);
+                                datosSimulacion.setUltimaTemperaturaSimulada(i.getTemperatura());
                             }
                         );
                     }
@@ -528,8 +583,9 @@ public final class SimuladorTiempo
                         if (climaSimulado && maximosCalculosClimaDia >= umbralCalculos) {
                             actualizarTiempoAtmosferico(
                                 clima, latitudJugador, longitudJugador, maximosCalculosClimaDia,
-                                (TiempoAtmosferico t) -> {
+                                (TiempoAtmosferico t, InformacionMeteorologica i) -> {
                                     t.aplicarAJugador(p);
+                                    ultimaInformacionMeteorologicaSimulada.put(p, i);
                                 }
                             );
                         }
@@ -562,7 +618,7 @@ public final class SimuladorTiempo
          *                                desee.
          */
         private void actualizarTiempoAtmosferico(
-            Clima clima, double latitud, double longitud, float maximosCalculosClimaDia, Consumer<TiempoAtmosferico> accion
+            Clima clima, double latitud, double longitud, float maximosCalculosClimaDia, BiConsumer<TiempoAtmosferico, InformacionMeteorologica> accion
         ) {
             long msDesdeUltimoCalculoClima = ultimoCalculoClima.containsKey(clima) ?
                 System.currentTimeMillis() - ultimoCalculoClima.get(clima) :
@@ -573,11 +629,14 @@ public final class SimuladorTiempo
             if (msDesdeUltimoCalculoClima >= msIntervaloCalculoClima) {
                 try {
                     if (clima.esBloqueante()) {
-                        clima.calcularTiempoAtmosfericoActual(latitud, longitud, (TiempoAtmosferico t) -> {
-                            accion.accept(t);
+                        clima.calcularTiempoAtmosfericoActual(latitud, longitud, (TiempoAtmosferico t, InformacionMeteorologica i) -> {
+                            accion.accept(t, i);
                         });
                     } else {
-                        accion.accept(clima.calcularTiempoAtmosfericoActual(latitud, longitud));
+                        Entry<TiempoAtmosferico, InformacionMeteorologica> informacionTiempo =
+                            clima.calcularTiempoAtmosfericoActual(latitud, longitud);
+
+                        accion.accept(informacionTiempo.getKey(), informacionTiempo.getValue());
                     }
                 } catch (MeteorologiaDesconocidaException exc) {
                     getLogger().log(
@@ -600,5 +659,50 @@ public final class SimuladorTiempo
      */
     private static final class PoseedorInstanciaClase {
         private static final SimuladorTiempo INSTANCIA = new SimuladorTiempo();
+    }
+
+    /**
+     * Contiene datos acerca de la simulación de un mundo.
+     *
+     * @author AlexTMjugador
+     */
+    private static final class DatosSimulacion {
+        private final boolean haciaCicloDiaNoche;
+        private Float ultimaTemperaturaSimulada;
+
+        public DatosSimulacion(boolean haciaCicloDiaNoche, Float ultimaTemperaturaSimulada) {
+            this.haciaCicloDiaNoche = haciaCicloDiaNoche;
+            this.ultimaTemperaturaSimulada = ultimaTemperaturaSimulada;
+        }
+
+        /**
+         * Obtiene la última temperatura simulada de un mundo.
+         *
+         * @return La última temperatura simulada de un mundo, que puede ser
+         *         nula si no se ha simulado aún, en grados Celsius.
+         */
+        public Float getUltimaTemperaturaSimulada() {
+            return ultimaTemperaturaSimulada;
+        }
+
+        /**
+         * Establece la última temperatura simulada.
+         *
+         * @param ultimaTemperaturaSimulada La última temperatura simulada, en
+         *                                  grados Celsius.
+         */
+        public void setUltimaTemperaturaSimulada(Float ultimaTemperaturaSimulada) {
+            this.ultimaTemperaturaSimulada = ultimaTemperaturaSimulada;
+        }
+
+        /**
+         * Comprueba si en este mundo estaba activado el ciclo día-noche de
+         * Minecraft.
+         *
+         * @return Verdadero en caso afirmativo, falso en otro caso.
+         */
+        public boolean haciaCicloDiaNoche() {
+            return haciaCicloDiaNoche;
+        }
     }
 }

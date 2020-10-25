@@ -17,16 +17,24 @@
  */
 package io.github.alextmjugador.khron.tiemporeal.meteorologia;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.function.Consumer;
+import java.util.AbstractMap;
+import java.util.Objects;
+import java.util.Map.Entry;
+import java.util.function.BiConsumer;
 import java.util.logging.Level;
 
 import javax.json.Json;
 import javax.json.stream.JsonParser;
 import javax.json.stream.JsonParser.Event;
-
 
 import io.github.alextmjugador.khron.tiemporeal.PluginTiempoReal;
 
@@ -45,7 +53,7 @@ final class ClimaWeatherbit implements Clima {
     ClimaWeatherbit() {}
 
     @Override
-    public TiempoAtmosferico calcularTiempoAtmosfericoActual(
+    public Entry<TiempoAtmosferico, InformacionMeteorologica> calcularTiempoAtmosfericoActual(
         double latitud, double longitud
     ) throws MeteorologiaDesconocidaException {
         return calcularTiempoAtmosferico(latitud, longitud, null, false);
@@ -53,7 +61,7 @@ final class ClimaWeatherbit implements Clima {
 
     @Override
     public void calcularTiempoAtmosfericoActual(
-        double latitud, double longitud, Consumer<TiempoAtmosferico> callback
+        double latitud, double longitud, BiConsumer<TiempoAtmosferico, InformacionMeteorologica> callback
     ) throws MeteorologiaDesconocidaException {
         calcularTiempoAtmosferico(latitud, longitud, callback, true);
     }
@@ -70,52 +78,52 @@ final class ClimaWeatherbit implements Clima {
     }
 
     /**
-     * Ejecuta el cálculo del tiempo atmosférico actual, enviando una solicitud
-     * HTTP a la API de Weatherbit, de forma síncrona (ejecutando la petición en
-     * el hilo actual y esperando a su resultado) o asíncrona (ejecutando un
-     * callback en el hilo principal cuando el resultado esté listo).
+     * Ejecuta el cálculo del tiempo atmosférico actual, enviando una solicitud HTTP
+     * a la API de Weatherbit, de forma síncrona (ejecutando la petición en el hilo
+     * actual y esperando a su resultado) o asíncrona (ejecutando un callback en el
+     * hilo principal cuando el resultado esté listo).
      *
      * @param latitud   La latitud de la que se quiere calcular qué tiempo
      *                  atmosférico hace.
      * @param longitud  La longitud de la que se quiere calcular qué tiempo
      *                  atmosférico hace.
-     * @param callback  La función a ejecutar cuando se complete el cálculo,
-     *                  para hacer lo pertinente con él, que recibe de parámetro
-     *                  el tiempo atmosférico calculado. La ejecución de este
-     *                  callback se realiza en el contexto del hilo principal
-     *                  del servidor. La ejecución se este callback no se
-     *                  garantiza en caso de que ocurran errores. Este parámetro
-     *                  solo es relevante si el cálculo se hace de manera
-     *                  asíncrona.
+     * @param callback  La función a ejecutar cuando se complete el cálculo, para
+     *                  hacer lo pertinente con él, que recibe de parámetro el
+     *                  tiempo atmosférico y la información meteorológica
+     *                  calculadas. La ejecución de este callback se realiza en el
+     *                  contexto del hilo principal del servidor. La ejecución se
+     *                  este callback no se garantiza en caso de que ocurran
+     *                  errores. Este parámetro solo es relevante si el cálculo se
+     *                  hace de manera asíncrona.
      * @param asincrono Si es verdadero, la petición se ejecutará de forma
      *                  asíncrona. En otro caso, se ejecutará de forma síncrona.
-     * @return Si se ha ejecutado de forma síncrona, el tiempo atmosférico
-     *         devuelto por la API. En caso contrario, nulo.
-     * @throws MeteorologiaDesconocidaException Si ocurre alguna condición de
-     *                                          error detectable en el hilo
-     *                                          actual al realizar el cálculo.
+     * @return Si se ha ejecutado de forma síncrona, la información devuelta por la
+     *         API. En caso contrario, nulo.
+     * @throws MeteorologiaDesconocidaException Si ocurre alguna condición de error
+     *                                          detectable en el hilo actual al
+     *                                          realizar el cálculo.
      */
-    private TiempoAtmosferico calcularTiempoAtmosferico(
-        double latitud, double longitud, Consumer<TiempoAtmosferico> callback, boolean asincrono
+    private Entry<TiempoAtmosferico, InformacionMeteorologica> calcularTiempoAtmosferico(
+        double latitud, double longitud, BiConsumer<TiempoAtmosferico, InformacionMeteorologica> callback, boolean asincrono
     ) throws MeteorologiaDesconocidaException {
         PluginTiempoReal plugin = PluginTiempoReal.getPlugin(PluginTiempoReal.class);
         String clave = plugin.getClaveWeatherbit();
-        TiempoAtmosferico toret = null;
+        Entry<TiempoAtmosferico, InformacionMeteorologica> toret = null;
 
         if (clave != null && clave.length() == 32) {
             if (asincrono) {
                 getScheduler().runTaskAsynchronously(plugin, () -> {
                     try {
-                        TiempoAtmosferico tiempoAtmosferico = solicitarTiempoAWeatherbit(clave, latitud, longitud);
+                        Entry<TiempoAtmosferico, InformacionMeteorologica> tiempoAtmosferico = solicitarTiempoAWeatherbit(
+                            clave, latitud, longitud
+                        );
 
                         getScheduler().runTask(plugin, () -> {
-                            callback.accept(tiempoAtmosferico);
+                            callback.accept(tiempoAtmosferico.getKey(), tiempoAtmosferico.getValue());
                         });
                     } catch (MeteorologiaDesconocidaException exc) {
                         getLogger().log(
-                            Level.WARNING,
-                            "Ha ocurrido un error durante la comunicación con la API de Weatherbit",
-                            exc
+                            Level.WARNING, "Ha ocurrido un error durante la comunicación con la API de Weatherbit", exc
                         );
                     }
                 });
@@ -138,15 +146,15 @@ final class ClimaWeatherbit implements Clima {
      *                 meteorológica.
      * @param longitud La longitud de la que obtener su información
      *                 meteorológica.
-     * @return El tiempo atmosférico devuelto por Weatherbit.
+     * @return La información devuelta por Weatherbit.
      * @throws MeteorologiaDesconocidaException Si no se ha podido recuperar
      *                                          información meteorológica de
      *                                          Weatherbit.
      */
-    private TiempoAtmosferico solicitarTiempoAWeatherbit(
+    private Entry<TiempoAtmosferico, InformacionMeteorologica> solicitarTiempoAWeatherbit(
         String clave, double latitud, double longitud
     ) throws MeteorologiaDesconocidaException {
-        TiempoAtmosferico tiempoAtmosferico = null;
+        Entry<TiempoAtmosferico, InformacionMeteorologica> toret = null;
 
         try {
             getLogger().fine("Solicitando información de tiempo atmosférico a Weatherbit...");
@@ -164,64 +172,97 @@ final class ClimaWeatherbit implements Clima {
             conexion.setAllowUserInteraction(false);
             conexion.setUseCaches(false);
             conexion.setRequestProperty("Accept", "application/json");
-            conexion.setRequestProperty("User-Agent", "Khron Spigot Minecraft server");
+            conexion.setRequestProperty("User-Agent", "Khron Minecraft server");
             conexion.connect();
+
+            InputStream streamConexion = conexion.getInputStream();
+            if (!streamConexion.markSupported()) {
+                streamConexion = new BufferedInputStream(streamConexion);
+            }
+            streamConexion.mark(2048); // Normalmente las respuestas ocupan ~650 bytes
 
             int codigoRespuesta = conexion.getResponseCode();
             if (codigoRespuesta == 200) {
-                try (JsonParser parser = Json.createParser(conexion.getInputStream())) {
-                    String nombreObjeto = null;
+                try (JsonParser parser = Json.createParser(streamConexion)) {
+                    String ultimaClave = null;
                     boolean enObjetoTiempo = false;
+                    TiempoAtmosferico tiempoAtmosferico = null;
+                    Float temperatura = null;
 
-                    while (parser.hasNext() && tiempoAtmosferico == null) {
+                    while (parser.hasNext() && toret == null) {
                         Event evento = parser.next();
 
-                        if (!enObjetoTiempo && evento == Event.KEY_NAME) {
-                            nombreObjeto = parser.getString();
-                        } else if (evento == Event.START_OBJECT && "weather".equals(nombreObjeto)) {
+                        if (evento == Event.KEY_NAME) {
+                            ultimaClave = parser.getString();
+                        } else if (evento == Event.START_OBJECT && "weather".equals(ultimaClave)) {
                             enObjetoTiempo = true;
                         } else if (evento == Event.END_OBJECT) {
                             enObjetoTiempo = false;
-                        } else if (enObjetoTiempo && evento == Event.KEY_NAME && "code".equals(parser.getString())) {
-                            if (parser.hasNext() && (evento = parser.next()) == Event.VALUE_STRING) {
-                                int codigoTiempo = Integer.parseInt(parser.getString());
+                        } else if (enObjetoTiempo && evento == Event.VALUE_NUMBER && "code".equals(ultimaClave)) {
+                            int codigoTiempo = Integer.parseInt(parser.getString());
 
-                                getLogger().log(
-                                    Level.FINE, "Código de tiempo recibido de Weatherbit: " + codigoTiempo
-                                );
+                            getLogger().log(
+                                Level.FINE, "Código de tiempo recibido de Weatherbit: " + codigoTiempo
+                            );
 
-                                if (codigoTiempo >= 200 && codigoTiempo < 300) {
-                                    // Diferentes tipos de tormenta
-                                    tiempoAtmosferico = TiempoAtmosferico.TORMENTA;
-                                } else if (codigoTiempo >= 300 && codigoTiempo < 400) {
-                                    // Diferentes tipos de llovizna
-                                    tiempoAtmosferico = TiempoAtmosferico.LLUVIA_O_NIEVE;
-                                } else if (codigoTiempo >= 500 && codigoTiempo < 600) {
-                                    // Diferentes tipos de lluvia
-                                    tiempoAtmosferico = TiempoAtmosferico.LLUVIA_O_NIEVE;
-                                } else if (codigoTiempo >= 600 && codigoTiempo < 700) {
-                                    // Diferentes tipos de nevada
-                                    tiempoAtmosferico = TiempoAtmosferico.LLUVIA_O_NIEVE;
-                                } else if (codigoTiempo >= 700 && codigoTiempo < 800) {
-                                    // Diferentes tipos de niebla
-                                    tiempoAtmosferico = TiempoAtmosferico.LLUVIA_O_NIEVE;
-                                } else if (codigoTiempo >= 800 && codigoTiempo < 900) {
-                                    // Diferentes tipos de cielos despejados
-                                    tiempoAtmosferico = TiempoAtmosferico.DESPEJADO;
-                                } else if (codigoTiempo == 900) {
-                                    // Precipitación desconocida
-                                    tiempoAtmosferico = TiempoAtmosferico.LLUVIA_O_NIEVE;
-                                } else {
-                                    throw new MeteorologiaDesconocidaException(
-                                        "La API de Weatherbit ha devuelto un código de tiempo no reconocido: " + codigoTiempo
-                                    );
-                                }
+                            if (codigoTiempo >= 200 && codigoTiempo < 300) {
+                                // Diferentes tipos de tormenta
+                                tiempoAtmosferico = TiempoAtmosferico.TORMENTA;
+                            } else if (codigoTiempo >= 300 && codigoTiempo < 400) {
+                                // Diferentes tipos de llovizna
+                                tiempoAtmosferico = TiempoAtmosferico.PRECIPITACIONES;
+                            } else if (codigoTiempo >= 500 && codigoTiempo < 600) {
+                                // Diferentes tipos de lluvia
+                                tiempoAtmosferico = TiempoAtmosferico.PRECIPITACIONES;
+                            } else if (codigoTiempo >= 600 && codigoTiempo < 700) {
+                                // Diferentes tipos de nevada
+                                tiempoAtmosferico = TiempoAtmosferico.PRECIPITACIONES;
+                            } else if (codigoTiempo >= 700 && codigoTiempo < 800) {
+                                // Diferentes tipos de niebla
+                                tiempoAtmosferico = TiempoAtmosferico.PRECIPITACIONES;
+                            } else if (codigoTiempo >= 800 && codigoTiempo < 900) {
+                                // Diferentes tipos de cielos despejados
+                                tiempoAtmosferico = TiempoAtmosferico.DESPEJADO;
+                            } else if (codigoTiempo == 900) {
+                                // Precipitación desconocida
+                                tiempoAtmosferico = TiempoAtmosferico.PRECIPITACIONES;
                             } else {
                                 throw new MeteorologiaDesconocidaException(
-                                    "La API de Weatherbit ha devuelto una respuesta mal formada"
+                                    "La API de Weatherbit ha devuelto un código de tiempo no reconocido: " + codigoTiempo
                                 );
                             }
+                        } else if (evento == Event.VALUE_NUMBER && "temp".equals(ultimaClave)) {
+                            temperatura = parser.getBigDecimal().floatValue();
                         }
+
+                        // Crear el valor a devolver si corresponde
+                        if (temperatura != null && tiempoAtmosferico != null) {
+                            toret = new AbstractMap.SimpleImmutableEntry<>(
+                                tiempoAtmosferico, new InformacionMeteorologica(temperatura)
+                            );
+                        }
+                    }
+
+                    if (toret == null) {
+                        String respuesta;
+                        try {
+                            streamConexion.reset();
+
+                            Writer writer = new StringWriter(2048);
+                            try (Reader reader = new InputStreamReader(streamConexion)) {
+                                reader.transferTo(writer);
+                            }
+
+                            respuesta = writer.toString();
+                        } catch (IOException exc) {
+                            respuesta = "Error obteniendo la respuesta: " + exc.getMessage();
+                        }
+
+                        throw new MeteorologiaDesconocidaException(
+                            "La API de Weatherbit ha dado una respuesta que no contenía toda la información buscada: " +
+                            Objects.toString(tiempoAtmosferico) + ", " + Objects.toString(temperatura) + "\n" +
+                            "Respuesta original:\n" + respuesta
+                        );
                     }
                 }
             } else {
@@ -229,13 +270,13 @@ final class ClimaWeatherbit implements Clima {
                     "La API de Weatherbit ha devuelto un código de respuesta HTTP no esperado: " + codigoRespuesta
                 );
             }
-        } catch (NumberFormatException | IOException exc) {
+        } catch (IOException exc) {
             throw new MeteorologiaDesconocidaException(
-                "La API de Weatherbit ha devuelto un código de respuesta HTTP no esperado", exc
+                "La API de Weatherbit ha devuelto una respuesta no esperada", exc
             );
         }
 
-        return tiempoAtmosferico;
+        return toret;
     }
 
     @Override

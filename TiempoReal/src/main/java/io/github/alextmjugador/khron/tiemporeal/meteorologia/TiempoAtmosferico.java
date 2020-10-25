@@ -44,7 +44,7 @@ public enum TiempoAtmosferico {
             p.setPlayerWeather(WeatherType.CLEAR);
         }
     },
-    LLUVIA_O_NIEVE {
+    PRECIPITACIONES {
         @Override
         public void aplicarAMundo(World w) {
             super.aplicarAMundo(w);

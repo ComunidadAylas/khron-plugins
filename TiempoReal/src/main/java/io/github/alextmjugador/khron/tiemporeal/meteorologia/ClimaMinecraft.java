@@ -17,7 +17,8 @@
  */
 package io.github.alextmjugador.khron.tiemporeal.meteorologia;
 
-import java.util.function.Consumer;
+import java.util.Map.Entry;
+import java.util.function.BiConsumer;
 
 /**
  * No provee información meteorológica, con el objetivo de no influir en las
@@ -27,7 +28,7 @@ import java.util.function.Consumer;
  */
 final class ClimaMinecraft implements Clima {
     @Override
-    public TiempoAtmosferico calcularTiempoAtmosfericoActual(
+    public Entry<TiempoAtmosferico, InformacionMeteorologica> calcularTiempoAtmosfericoActual(
         double latitud, double longitud
     ) throws MeteorologiaDesconocidaException {
         throw new MeteorologiaDesconocidaException("Este clima no modifica las mecánicas de Minecraft");
@@ -35,7 +36,7 @@ final class ClimaMinecraft implements Clima {
 
     @Override
     public void calcularTiempoAtmosfericoActual(
-        double latitud, double longitud, Consumer<TiempoAtmosferico> callback
+        double latitud, double longitud, BiConsumer<TiempoAtmosferico, InformacionMeteorologica> callback
     ) throws MeteorologiaDesconocidaException {
         throw new MeteorologiaDesconocidaException("Este clima no modifica las mecánicas de Minecraft");
     }

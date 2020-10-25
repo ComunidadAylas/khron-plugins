@@ -30,14 +30,14 @@ Parámetros de simulación de mundos:
 #   - ...
 
 # El siguiente parámetro indica el texto que se mostrará a los jugadores en la barra de acciones cuando empuñen
-# un reloj digital.
+# un reloj.
 # Admite códigos de formato (con el caracter &). Debe de contener el texto "{DISPLAY}", que el plugin reemplazará por
-# el texto mostrado en la pantalla del reloj.
-Texto para relojes digitales: '&7&l{DISPLAY}'
+# el texto mostrado en la pantalla del reloj, al final.
+Texto para relojes: '&7&l{DISPLAY}'
 
 # Este parámetro puede tomar los mismos valores que el anterior, y sirve para un propósito similar, salvo que
 # se utiliza para dimensiones que no tienen un ciclo día-noche.
-Texto para relojes digitales en dimensiones sin ciclo día-noche: '&8&l{DISPLAY}'
+Texto para relojes en dimensiones sin ciclo día-noche: '&0&l{DISPLAY}'
 
 # La clave a usar para autenticarse con la API de Weatherbit y obtener información meteorológica de ella.
 #Clave de la API de Weatherbit: 'CLAVEFALSA123'

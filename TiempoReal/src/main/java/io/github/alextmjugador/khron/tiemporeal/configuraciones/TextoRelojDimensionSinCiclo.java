@@ -23,25 +23,25 @@ package io.github.alextmjugador.khron.tiemporeal.configuraciones;
  *
  * @author AlexTMjugador
  */
-public final class TextoRelojDigitalDimensionSinCiclo extends TextoRelojDigital {
+public final class TextoRelojDimensionSinCiclo extends TextoReloj {
     /**
      * La ruta en el fichero de configuración hacia este parámetro de configuración.
      */
-    private static final String RUTA_CONFIG = "Texto para relojes digitales en dimensiones sin ciclo día-noche";
+    private static final String RUTA_CONFIG = "Texto para relojes en dimensiones sin ciclo día-noche";
 
     /**
      * El identificador de este parámetro de configuración en el código y en el
      * comando asociado para cambiarlo.
      */
-    private static final String ID_CONFIG = "textoRelojDigitalDimensionSinCiclo";
+    private static final String ID_CONFIG = "textoRelojDimensionSinCiclo";
 
     /**
      * El permiso necesario para ejecutar un comando que cambie el valor de este
      * parámetro de configuración.
      */
-    private static final String PERMISO_CONFIG = "tiemporeal.trconfig.textoRelojDigitalDimensionSinCiclo";
+    private static final String PERMISO_CONFIG = "tiemporeal.trconfig.textoRelojDimensionSinCiclo";
 
-    public TextoRelojDigitalDimensionSinCiclo() {
+    public TextoRelojDimensionSinCiclo() {
         super(RUTA_CONFIG, ID_CONFIG, PERMISO_CONFIG);
     }
 }
