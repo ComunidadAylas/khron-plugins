@@ -20,7 +20,9 @@ package io.github.alextmjugador.khron.tiemporeal.relojes;
 import static org.bukkit.Bukkit.getServer;
 
 import java.time.ZonedDateTime;
+import java.time.format.TextStyle;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import org.bukkit.Location;
@@ -62,6 +64,11 @@ public final class RelojDigital extends RelojItem<Void> {
      * El identificador del modelo personalizado del reloj.
      */
     private static final int ID_MODELO = 1;
+
+    /**
+     * Localización de Java que representa el idioma español.
+     */
+    private static final Locale LOCALIZACION_ESP = new Locale("es");
 
     /**
      * La hora del día en la que está cada mundo.
@@ -115,6 +122,14 @@ public final class RelojDigital extends RelojItem<Void> {
         TextComponent componenteMinuto = new TextComponent(String.format("%02d", fechaHora.getMinute()));
         int segundo = fechaHora.getSecond();
         TextComponent componenteSegundo = new TextComponent(String.format("%02d", segundo));
+        TextComponent componenteFecha = new TextComponent(
+            String.format(
+                "%s, %02d/%02d",
+                fechaHora.getDayOfWeek().getDisplayName(TextStyle.NARROW, LOCALIZACION_ESP),
+                fechaHora.getDayOfMonth(),
+                fechaHora.getMonthValue()
+            )
+        );
         TextComponent espacio = new TextComponent(" ");
         Location posicionJugador = jugador.getLocation();
 
@@ -127,6 +142,8 @@ public final class RelojDigital extends RelojItem<Void> {
         display.addExtra(componenteMinuto);
         display.addExtra(separadorDigitos);
         display.addExtra(componenteSegundo);
+        display.addExtra(espacio);
+        display.addExtra(componenteFecha);
 
         if (mundoConCicloDiaNoche) {
             double temperaturaBioma = mundo.getTemperature(
@@ -189,6 +206,7 @@ public final class RelojDigital extends RelojItem<Void> {
             componenteHora.setObfuscated(true);
             componenteMinuto.setObfuscated(true);
             componenteSegundo.setObfuscated(true);
+            componenteFecha.setObfuscated(true);
         }
 
         return display;
