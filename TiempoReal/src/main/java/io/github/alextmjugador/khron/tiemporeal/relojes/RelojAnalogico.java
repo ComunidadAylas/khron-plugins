@@ -31,17 +31,22 @@ import net.md_5.bungee.api.chat.TextComponent;
 
 /**
  * Representa un reloj analógico, cuyo display muestra la hora a quien lo empuña
- * con precisión de segundos, pero con granuralidad de 2 para los minutos y
- * segundos.
+ * con precisión de segundos, pero con granuralidad de 2 unidades para los
+ * minutos y segundos.
  *
  * @author AlexTMjugador
  */
-public final class RelojAnalogico extends Reloj<Byte> {
+public final class RelojAnalogico extends RelojItem<Long> {
     /**
      * El sonido que se reproducirá cuando el jugador mantenga empuñado el reloj,
      * para indicar el movimiento de las manecillas.
      */
     private static final String SONIDO_TICTAC = "custom.reloj_analogico_tictac";
+
+    /**
+     * Restringe la instanciación de esta clase a otras clases.
+     */
+    private RelojAnalogico() {}
 
     /**
      * Obtiene la única instancia del reloj digital completo en la JVM,
@@ -50,7 +55,9 @@ public final class RelojAnalogico extends Reloj<Byte> {
      * @return La devandicha instancia.
      */
     public static RelojAnalogico get() {
-        return PoseedorInstanciaClase.INSTANCIA;
+        RelojAnalogico instancia = PoseedorInstanciaClase.INSTANCIA;
+        instancia.inicializar();
+        return instancia;
     }
 
     @Override
@@ -62,15 +69,18 @@ public final class RelojAnalogico extends Reloj<Byte> {
     }
 
     @Override
-    protected BaseComponent formatearDisplay(ZonedDateTime hora, Player jugador, World mundo, boolean mundoConCicloDiaNoche) {
+    protected BaseComponent formatearDisplay(ZonedDateTime fechaHora, Player jugador, World mundo, boolean mundoConCicloDiaNoche) {
         TextComponent display = new TextComponent();
         TextComponent separadorDigitos = new TextComponent(":");
-        TextComponent componenteHora = new TextComponent(String.format("%02d", hora.get(ChronoField.CLOCK_HOUR_OF_AMPM)));
-        TextComponent componenteMinuto = new TextComponent(
-            String.format("%02d", (int) (hora.getMinute() / 2.0) * 2)
+        TextComponent componenteHora = new TextComponent(
+            String.format("%02d", fechaHora.get(ChronoField.CLOCK_HOUR_OF_AMPM))
         );
-        byte segundoMostrar = (byte) ((int) (hora.getSecond() / 2.0) * 2);
-        TextComponent componenteSegundo = new TextComponent(String.format("%02d", segundoMostrar));
+        TextComponent componenteMinuto = new TextComponent(
+            String.format("%02d", (int) (fechaHora.getMinute() / 2.0) * 2)
+        );
+        TextComponent componenteSegundo = new TextComponent(
+            String.format("%02d", (int) (fechaHora.getSecond() / 2.0) * 2)
+        );
 
         display.addExtra(componenteHora);
         display.addExtra(separadorDigitos);
@@ -78,22 +88,32 @@ public final class RelojAnalogico extends Reloj<Byte> {
         display.addExtra(separadorDigitos);
         display.addExtra(componenteSegundo);
 
-        if (mundoConCicloDiaNoche) {
-            Byte ultimoSegundoVisto = getEstadoReloj(jugador);
-            if (ultimoSegundoVisto != null && ultimoSegundoVisto != segundoMostrar) {
-                jugador.playSound(
-                    jugador.getLocation(),
-                    SONIDO_TICTAC, SoundCategory.MASTER, 0.1f, 1
-                );
-            }
+        Long ultimaTimestamp = getEstadoDisplay(jugador);
+        long timestampActual;
 
-            if (ultimoSegundoVisto == null || ultimoSegundoVisto != segundoMostrar) {
-                setEstadoReloj(jugador, (byte) segundoMostrar);
-            }
+        // Ajustar cálculo de la marca de tiempo y componentes de hora
+        // dependiendo de si hay un ciclo de día-noche
+        if (mundoConCicloDiaNoche) {
+            timestampActual = (long) ((System.currentTimeMillis() / 1000) / 2.0) * 2;
         } else {
+            // Si no hay un ciclo de día-noche, queremos reproducir el sonido
+            // con una frecuencia cuatro veces mayor
+            timestampActual = System.currentTimeMillis() / 500;
+
             componenteHora.setObfuscated(true);
             componenteMinuto.setObfuscated(true);
             componenteSegundo.setObfuscated(true);
+        }
+
+        if (ultimaTimestamp != null && ultimaTimestamp != timestampActual) {
+            jugador.playSound(
+                jugador.getLocation(),
+                SONIDO_TICTAC, SoundCategory.MASTER, mundoConCicloDiaNoche ? 0.1f : 0.5f, 1
+            );
+        }
+
+        if (ultimaTimestamp == null || ultimaTimestamp != timestampActual) {
+            setEstadoDisplay(jugador, timestampActual);
         }
 
         return display;

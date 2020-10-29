@@ -17,26 +17,35 @@
  */
 package io.github.alextmjugador.khron.tiemporeal.relojes;
 
+import static org.bukkit.Bukkit.getServer;
+
 import java.time.ZonedDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.SoundCategory;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.world.WorldUnloadEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import io.github.alextmjugador.khron.tiemporeal.SimuladorTiempo;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 
 /**
- * Representa un reloj digital completo, cuyo display muestra la hora a quien lo
- * empuña con precisión de segundos, el tiempo atmosférico y la temperatura.
+ * Representa un reloj digital, cuyo display muestra la hora a quien lo empuña
+ * con precisión de segundos, el tiempo atmosférico y la temperatura. También
+ * reproduce un aviso sonoro cada vez que pasa una hora.
  *
  * @author AlexTMjugador
  */
-public final class RelojDigital extends Reloj<Byte> {
+public final class RelojDigital extends RelojItem<Void> {
     /**
      * La fuente proporcionada por un paquete de recursos que contiene los iconos
      * usados por este reloj.
@@ -50,13 +59,43 @@ public final class RelojDigital extends Reloj<Byte> {
     private static final String SONIDO_HORA = "custom.reloj_digital_pitidos";
 
     /**
+     * El identificador del modelo personalizado del reloj.
+     */
+    private static final int ID_MODELO = 1;
+
+    /**
+     * La hora del día en la que está cada mundo.
+     */
+    private final Map<World, Byte> ultimaHoraMundo = new HashMap<>(
+        (int) (getServer().getWorlds().size() / 0.75)
+    );
+
+    /**
+     * Restringe la instanciación de esta clase a otras clases.
+     */
+    private RelojDigital() {}
+
+    /**
      * Obtiene la única instancia del reloj digital completo en la JVM, creándola si
      * no lo ha sido ya.
      *
      * @return La devandicha instancia.
      */
     public static RelojDigital get() {
-        return PoseedorInstanciaClase.INSTANCIA;
+        RelojDigital instancia = PoseedorInstanciaClase.INSTANCIA;
+        instancia.inicializar();
+        return instancia;
+    }
+
+    /**
+     * Elimina un mundo que se va a descargar de las estructuras de datos de esta
+     * clase.
+     *
+     * @param event El evento con la información del mundo que se va a descargar.
+     */
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    public void onWorldUnload(WorldUnloadEvent event) {
+        ultimaHoraMundo.remove(event.getWorld());
     }
 
     @Override
@@ -64,19 +103,20 @@ public final class RelojDigital extends Reloj<Byte> {
         return Material.CLOCK.equals(stack.getType()) &&
             stack.hasItemMeta() &&
             stack.getItemMeta().hasCustomModelData() &&
-            stack.getItemMeta().getCustomModelData() == 1;
+            stack.getItemMeta().getCustomModelData() == ID_MODELO;
     }
 
     @Override
-	protected BaseComponent formatearDisplay(ZonedDateTime hora, Player jugador, World mundo, boolean mundoConCicloDiaNoche) {
+	protected BaseComponent formatearDisplay(ZonedDateTime fechaHora, Player jugador, World mundo, boolean mundoConCicloDiaNoche) {
         TextComponent display = new TextComponent();
         TextComponent separadorDigitos = new TextComponent(":");
-        int numeroHora = hora.getHour();
-        TextComponent componenteHora = new TextComponent(String.format("%02d", numeroHora));
-        TextComponent componenteMinuto = new TextComponent(String.format("%02d", hora.getMinute()));
-        int segundo = hora.getSecond();
+        int hora = fechaHora.getHour();
+        TextComponent componenteHora = new TextComponent(String.format("%02d", hora));
+        TextComponent componenteMinuto = new TextComponent(String.format("%02d", fechaHora.getMinute()));
+        int segundo = fechaHora.getSecond();
         TextComponent componenteSegundo = new TextComponent(String.format("%02d", segundo));
         TextComponent espacio = new TextComponent(" ");
+        Location posicionJugador = jugador.getLocation();
 
         if (mundoConCicloDiaNoche && segundo % 2 != 0) {
             separadorDigitos.setColor(net.md_5.bungee.api.ChatColor.DARK_GRAY);
@@ -89,8 +129,6 @@ public final class RelojDigital extends Reloj<Byte> {
         display.addExtra(componenteSegundo);
 
         if (mundoConCicloDiaNoche) {
-            Location posicionJugador = jugador.getLocation();
-
             double temperaturaBioma = mundo.getTemperature(
                 posicionJugador.getBlockX(), posicionJugador.getBlockY(), posicionJugador.getBlockZ()
             );
@@ -141,34 +179,68 @@ public final class RelojDigital extends Reloj<Byte> {
             iconoTiempo.setObfuscated(false);
 
             display.addExtra(iconoTiempo);
-
-            Byte ultimaHoraVista = getEstadoReloj(jugador);
-            if (ultimaHoraVista != null && ultimaHoraVista != numeroHora) {
-                jugador.playSound(
-                    posicionJugador, SONIDO_HORA, SoundCategory.MASTER, 1, 1
-                );
-
-                // Queremos que otros jugadores escuchen el reloj, pero en una
-                // categoría de sonido diferente
-                for (Player jugadorCercano : mundo.getNearbyPlayers(posicionJugador, 16)) {
-                    if (!jugadorCercano.equals(jugador)) {
-                        jugadorCercano.playSound(
-                            posicionJugador, SONIDO_HORA, SoundCategory.PLAYERS, 1, 1
-                        );
-                    }
-                }
-            }
-
-            if (ultimaHoraVista == null || ultimaHoraVista != numeroHora) {
-                setEstadoReloj(jugador, (byte) numeroHora);
-            }
         } else {
+            // Reproducir los pitidos del reloj mucho más rápidamente, para
+            // dar la impresión de que algo está roto
+            jugador.playSound(
+                posicionJugador, SONIDO_HORA, SoundCategory.MASTER, 0.5f, 1
+            );
+
             componenteHora.setObfuscated(true);
             componenteMinuto.setObfuscated(true);
             componenteSegundo.setObfuscated(true);
         }
 
         return display;
+    }
+
+    @Override
+    protected boolean debeJugadorRecibirActualizaciones(Player jugador, boolean mundoConCicloDiaNoche) {
+        boolean toret;
+
+        if (mundoConCicloDiaNoche) {
+            ItemStack stackRelojDigital = new ItemStack(Material.CLOCK);
+            ItemMeta meta = getServer().getItemFactory().getItemMeta(Material.CLOCK);
+
+            meta.setCustomModelData(ID_MODELO);
+            stackRelojDigital.setItemMeta(meta);
+
+            // Enviar actualizaciones a jugadores que tengan al menos un reloj digital en su inventario
+            // y estén en un mundo con ciclo día-noche
+            toret = jugador.getInventory().containsAtLeast(stackRelojDigital, 1);
+        } else {
+            toret = false;
+        }
+
+        return toret;
+    }
+
+    @Override
+    protected void onActualizacionReloj(ZonedDateTime fechaHora, Player jugador, World mundo, boolean mundoConCicloDiaNoche) {
+        byte hora = (byte) fechaHora.getHour();
+        Byte ultimaHora = ultimaHoraMundo.get(mundo);
+
+        if (ultimaHora != null && hora != ultimaHora) {
+            Location posicionJugador = jugador.getLocation();
+
+            jugador.playSound(
+                posicionJugador, SONIDO_HORA, SoundCategory.MASTER, 1, 1
+            );
+
+            // Queremos que otros jugadores escuchen el reloj, pero en una
+            // categoría de sonido diferente
+            for (Player jugadorCercano : mundo.getNearbyPlayers(posicionJugador, 16)) {
+                if (!jugador.equals(jugadorCercano)) {
+                    jugadorCercano.playSound(
+                        posicionJugador, SONIDO_HORA, SoundCategory.PLAYERS, 1, 1
+                    );
+                }
+            }
+        }
+
+        if (ultimaHora == null || hora != ultimaHora) {
+            ultimaHoraMundo.put(mundo, hora);
+        }
     }
 
     /**

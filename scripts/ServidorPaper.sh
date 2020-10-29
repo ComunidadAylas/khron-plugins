@@ -418,6 +418,55 @@ sleep 7
 exit
 SCRIPT_REINICIO
 ) > start.sh
+        # Aumentar el nivel de depuración de los logs
+        (cat <<CONFIGURACION_LOG4J
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- log4j2.xml basado en el incluido en una versión de Paper para Minecraft 1.16.3 -->
+<!-- Más información en: https://www.reddit.com/r/admincraft/comments/69271l/guide_controlling_console_and_log_output_with/ -->
+<Configuration status="WARN" packages="com.mojang.util" shutdownHook="disable" monitorInterval="15">
+    <Appenders>
+        <Queue name="ServerGuiConsole">
+            <PatternLayout pattern="[%d{HH:mm:ss} %level]: %msg%n" />
+        </Queue>
+        <TerminalConsole name="TerminalConsole">
+            <PatternLayout>
+                <LoggerNamePatternSelector defaultPattern="%highlightError{[%d{HH:mm:ss} %level]: [%logger] %minecraftFormatting{%msg}%n%xEx{full}}">
+                    <!-- Log root, Minecraft, Mojang and Bukkit loggers without prefix -->
+                    <!-- Disable prefix for various plugins that bypass the plugin logger -->
+                    <PatternMatch key=",net.minecraft.,Minecraft,com.mojang.,com.sk89q.,ru.tehkode.,Minecraft.AWE"
+                                  pattern="%highlightError{[%d{HH:mm:ss} %level]: %minecraftFormatting{%msg}%n%xEx{full}}" />
+                </LoggerNamePatternSelector>
+            </PatternLayout>
+        </TerminalConsole>
+        <RollingRandomAccessFile name="File" fileName="logs/latest.log" filePattern="logs/%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout>
+                <LoggerNamePatternSelector defaultPattern="[%d{HH:mm:ss}] [%t/%level]: [%logger] %minecraftFormatting{%msg}{strip}%n%xEx{full}">
+                    <!-- Log root, Minecraft, Mojang and Bukkit loggers without prefix -->
+                    <!-- Disable prefix for various plugins that bypass the plugin logger -->
+                    <PatternMatch key=",net.minecraft.,Minecraft,com.mojang.,com.sk89q.,ru.tehkode.,Minecraft.AWE"
+                                  pattern="[%d{HH:mm:ss}] [%t/%level]: %minecraftFormatting{%msg}{strip}%n%xEx{full}" />
+                </LoggerNamePatternSelector>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy />
+                <OnStartupTriggeringPolicy />
+            </Policies>
+            <DefaultRolloverStrategy max="1000"/>
+        </RollingRandomAccessFile>
+    </Appenders>
+    <Loggers>
+        <Root level="ALL">
+            <filters>
+                <MarkerFilter marker="NETWORK_PACKETS" onMatch="DENY" onMismatch="NEUTRAL" />
+            </filters>
+            <AppenderRef ref="File"/>
+            <AppenderRef ref="TerminalConsole"/>
+            <AppenderRef ref="ServerGuiConsole"/>
+        </Root>
+    </Loggers>
+</Configuration>
+CONFIGURACION_LOG4J
+) > log4j2.xml
 	fi
 
 	cd ../..
@@ -431,7 +480,7 @@ arrancarPaper() {
 	echo "* CONECTAR EL DEPURADOR A LA JVM CUANDO SE INDIQUE QUE ESTÁ ESCUCHANDO *"
 	echo "************************************************************************"
 	echo
-	"${EJECUTABLE_JAVA:-java}" -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=8000 -Dcom.mojang.eula.agree=true -Xmx1G -jar "paperclip.jar" nogui
+	"${EJECUTABLE_JAVA:-java}" -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=8000 -Dcom.mojang.eula.agree=true -Dlog4j.configurationFile="log4j2.xml" -Xmx1G -jar "paperclip.jar" nogui
 	cd ../..
 	return $?
 }

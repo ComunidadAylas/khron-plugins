@@ -17,7 +17,6 @@
  */
 package io.github.alextmjugador.khron.tiemporeal;
 
-import static org.bukkit.Bukkit.getLogger;
 import static org.bukkit.Bukkit.getServer;
 import static org.bukkit.Bukkit.getWorlds;
 
@@ -30,7 +29,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
-import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 import org.bukkit.ChatColor;
@@ -54,6 +52,7 @@ import org.bukkit.event.world.WorldUnloadEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
+import org.slf4j.Logger;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -260,7 +259,7 @@ public final class SimuladorTiempo implements Listener, NotificableCambioConfigu
             }
 
             if (mundosSimulados.containsKey(w)) {
-                getLogger().info(PROPIEDAD_RESTRINGIDA);
+                PluginTiempoReal.getPlugin(PluginTiempoReal.class).getSLF4JLogger().info(PROPIEDAD_RESTRINGIDA);
                 event.setCancelled(true);
             }
         }
@@ -484,6 +483,7 @@ public final class SimuladorTiempo implements Listener, NotificableCambioConfigu
         @Override
         public void run() {
             Instant ahora = Instant.now();
+            Logger loggerPlugin = PluginTiempoReal.getPlugin(PluginTiempoReal.class).getSLF4JLogger();
 
             Map<String, ParametrosSimulacionMundo> parametrosSimulacionMundos = PluginTiempoReal
                 .getPlugin(PluginTiempoReal.class).getParametrosSimulacionMundo();
@@ -540,7 +540,7 @@ public final class SimuladorTiempo implements Listener, NotificableCambioConfigu
 
                     // Calcular el clima del mundo si corresponde
                     if (climaSimulado) {
-                        actualizarTiempoAtmosferico(
+                        actualizarMeteorologia(
                             clima, latitudSpawn, longitudSpawn, maximosCalculosClimaDia,
                             (TiempoAtmosferico t, InformacionMeteorologica i) -> {
                                 t.aplicarAMundo(w);
@@ -593,8 +593,7 @@ public final class SimuladorTiempo implements Listener, NotificableCambioConfigu
                                 // respecto al tiempo del servidor
                                 p.setPlayerTime(tiempoJugador - tiempoMundo, true);
                             } catch (ExecutionException exc) {
-                                getLogger().log(
-                                    Level.WARNING,
+                                loggerPlugin.warn(
                                     "Ha ocurrido una excepción no controlada durante la simulación del ciclo diurno para un jugador",
                                     exc
                                 );
@@ -604,7 +603,7 @@ public final class SimuladorTiempo implements Listener, NotificableCambioConfigu
                         // Aplicar el tiempo atmosférico particular si es necesario, y si
                         // el proveedor de tiempo atmosférico usado va sobrado de cálculos disponibles
                         if (climaSimulado && maximosCalculosClimaDia >= umbralCalculos) {
-                            actualizarTiempoAtmosferico(
+                            actualizarMeteorologia(
                                 clima, latitudJugador, longitudJugador, maximosCalculosClimaDia,
                                 (TiempoAtmosferico t, InformacionMeteorologica i) -> {
                                     t.aplicarAJugador(p);
@@ -640,7 +639,7 @@ public final class SimuladorTiempo implements Listener, NotificableCambioConfigu
          *                                clima especificado al objeto que se
          *                                desee.
          */
-        private void actualizarTiempoAtmosferico(
+        private void actualizarMeteorologia(
             Clima clima, double latitud, double longitud, float maximosCalculosClimaDia, BiConsumer<TiempoAtmosferico, InformacionMeteorologica> accion
         ) {
             long msDesdeUltimoCalculoClima = ultimoCalculoClima.containsKey(clima) ?
@@ -662,8 +661,7 @@ public final class SimuladorTiempo implements Listener, NotificableCambioConfigu
                         accion.accept(informacionTiempo.getKey(), informacionTiempo.getValue());
                     }
                 } catch (MeteorologiaDesconocidaException exc) {
-                    getLogger().log(
-                        Level.WARNING,
+                    PluginTiempoReal.getPlugin(PluginTiempoReal.class).getSLF4JLogger().warn(
                         "Ha ocurrido un error al calcular el tiempo atmosférico de un mundo",
                         exc
                     );

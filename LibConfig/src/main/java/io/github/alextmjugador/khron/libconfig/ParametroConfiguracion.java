@@ -242,7 +242,7 @@ public abstract class ParametroConfiguracion<E, T> {
                 this.valor = procesarValor(nuevoValor);
 
                 if (guardarADisco) {
-                    getPlugin().getLogger().info("Se guarda configuración del plugin a memoria secundaria");
+                    getPlugin().getSLF4JLogger().info("Se guarda configuración del plugin a memoria secundaria");
                     getPlugin().getConfig().set(rutaConfiguracion, getValorYaml());
                     getPlugin().saveConfig();
                 }

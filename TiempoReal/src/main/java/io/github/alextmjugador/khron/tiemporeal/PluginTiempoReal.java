@@ -58,6 +58,16 @@ public final class PluginTiempoReal extends PluginConfigurable {
     private boolean inicializado = false;
 
     /**
+     * Una referencia a la única instancia en la JVM del reloj digital.
+     */
+    private RelojDigital relojDigital;
+
+    /**
+     * Una referencia a la única instancia en la JVM del reloj analógico.
+     */
+    private RelojAnalogico relojAnalogico;
+
+    /**
      * Los parámetros de simulación del ciclo diurno de cada mundo.
      */
     private MapaParametrosSimulacionMundo parametrosSimulacionMundo;
@@ -115,11 +125,13 @@ public final class PluginTiempoReal extends PluginConfigurable {
 
             // Comenzar simulación de ciclos diurnos
             SimuladorTiempo.get().comenzarSimulacion();
-
-            // Registrar eventos
             getPluginManager().registerEvents(SimuladorTiempo.get(), this);
-            getPluginManager().registerEvents(RelojDigital.get(), this);
-            getPluginManager().registerEvents(RelojAnalogico.get(), this);
+
+            // Registrar relojes
+            relojDigital = RelojDigital.get();
+            relojAnalogico = RelojAnalogico.get();
+            getPluginManager().registerEvents(relojDigital, this);
+            getPluginManager().registerEvents(relojAnalogico, this);
 
             inicializado = true;
         }
@@ -132,7 +144,10 @@ public final class PluginTiempoReal extends PluginConfigurable {
     public void onDisable() {
         if (inicializado) {
             SimuladorTiempo.get().detenerSimulacion();
-            RelojDigital.get().ocultarTodosLosDisplay();
+            relojDigital.detener();
+            relojAnalogico.detener();
+            relojDigital = null;
+            relojAnalogico = null;
         }
     }
 

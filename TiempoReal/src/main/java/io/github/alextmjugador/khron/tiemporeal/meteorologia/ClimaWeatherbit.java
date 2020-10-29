@@ -30,15 +30,15 @@ import java.util.AbstractMap;
 import java.util.Objects;
 import java.util.Map.Entry;
 import java.util.function.BiConsumer;
-import java.util.logging.Level;
 
 import javax.json.Json;
 import javax.json.stream.JsonParser;
 import javax.json.stream.JsonParser.Event;
 
+import org.slf4j.Logger;
+
 import io.github.alextmjugador.khron.tiemporeal.PluginTiempoReal;
 
-import static org.bukkit.Bukkit.getLogger;
 import static org.bukkit.Bukkit.getScheduler;
 
 /**
@@ -122,8 +122,8 @@ final class ClimaWeatherbit implements Clima {
                             callback.accept(tiempoAtmosferico.getKey(), tiempoAtmosferico.getValue());
                         });
                     } catch (MeteorologiaDesconocidaException exc) {
-                        getLogger().log(
-                            Level.WARNING, "Ha ocurrido un error durante la comunicación con la API de Weatherbit", exc
+                        PluginTiempoReal.getPlugin(PluginTiempoReal.class).getSLF4JLogger().warn(
+                            "Ha ocurrido un error durante la comunicación con la API de Weatherbit", exc
                         );
                     }
                 });
@@ -155,9 +155,13 @@ final class ClimaWeatherbit implements Clima {
         String clave, double latitud, double longitud
     ) throws MeteorologiaDesconocidaException {
         Entry<TiempoAtmosferico, InformacionMeteorologica> toret = null;
+        Logger loggerPlugin = PluginTiempoReal.getPlugin(PluginTiempoReal.class).getSLF4JLogger();
 
         try {
-            getLogger().fine("Solicitando información de tiempo atmosférico a Weatherbit...");
+            loggerPlugin.trace(
+                "Solicitando información meteorológica a Weatherbit para lat = {}, lon = {}...",
+                latitud, longitud
+            );
 
             // Establecer configuración de la conexión a la API y realizarla
             StringBuilder urlConsulta = new StringBuilder();
@@ -201,8 +205,9 @@ final class ClimaWeatherbit implements Clima {
                         } else if (enObjetoTiempo && evento == Event.VALUE_NUMBER && "code".equals(ultimaClave)) {
                             int codigoTiempo = Integer.parseInt(parser.getString());
 
-                            getLogger().log(
-                                Level.FINE, "Código de tiempo recibido de Weatherbit: " + codigoTiempo
+                            loggerPlugin.trace(
+                                "Código de tiempo recibido: {}",
+                                codigoTiempo
                             );
 
                             if (codigoTiempo >= 200 && codigoTiempo < 300) {
@@ -233,6 +238,27 @@ final class ClimaWeatherbit implements Clima {
                             }
                         } else if (evento == Event.VALUE_NUMBER && "temp".equals(ultimaClave)) {
                             temperatura = parser.getBigDecimal().floatValue();
+
+                            loggerPlugin.trace(
+                                "Temperatura recibida: {}",
+                                temperatura
+                            );
+                        } else if (evento == Event.VALUE_STRING && "city_name".equals(ultimaClave)) {
+                            loggerPlugin.trace(
+                                "Ciudad correspondiente a las coordenadas: {}", parser.getString()
+                            );
+                        } else if (evento == Event.VALUE_STRING && "timezone".equals(ultimaClave)) {
+                            loggerPlugin.trace(
+                                "Franja horaria correspondiente a las coordenadas: {}", parser.getString()
+                            );
+                        } else if (evento == Event.VALUE_STRING && "country_code".equals(ultimaClave)) {
+                            loggerPlugin.trace(
+                                "Código de país correspondiente a las coordenadas: {}", parser.getString()
+                            );
+                        } else if (evento == Event.VALUE_STRING && "state_code".equals(ultimaClave)) {
+                            loggerPlugin.trace(
+                                "Código de estado correspondiente a las coordenadas: {}", parser.getString()
+                            );
                         }
 
                         // Crear el valor a devolver si corresponde
