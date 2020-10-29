@@ -113,6 +113,12 @@ public final class SimuladorTiempo implements Listener, NotificableCambioConfigu
     private static final Pattern COMANDO_CAMBIO_HORA = Pattern.compile("^/?time (add|set)");
 
     /**
+     * Constante que alberga el valor representable como un float más cercano a dos
+     * tercios.
+     */
+    private static final float DOS_TERCIOS = 2 / 3.0f;
+
+    /**
      * Los mundos que se están simulando actualmente.
      */
     private final Map<World, DatosSimulacion> mundosSimulados = new HashMap<>(
@@ -343,8 +349,9 @@ public final class SimuladorTiempo implements Listener, NotificableCambioConfigu
             temperaturaBase = datosSim.getUltimaTemperaturaSimulada();
         } else {
             // Si no tenemos información meteorológica, usar un valor neutral que da
-            // valores apropiados para los valores de temperatura de biomas de Minecraft
-            temperaturaBase = 25;
+            // valores apropiados para los valores de temperatura de biomas de Minecraft,
+            // escalado según la hora del día actual
+            temperaturaBase = 25 * (float) (1 / (3 * Math.cosh((w.getTime() - 6000) / 1200.0)) + DOS_TERCIOS);
         }
 
         // La temperatura puede variar abruptamente de un bloque a otro debido al cambio
