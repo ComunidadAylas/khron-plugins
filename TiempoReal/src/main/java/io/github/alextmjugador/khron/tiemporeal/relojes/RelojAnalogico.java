@@ -112,9 +112,7 @@ public final class RelojAnalogico extends RelojItem<Long> {
             );
         }
 
-        if (ultimaTimestamp == null || ultimaTimestamp != timestampActual) {
-            setEstadoDisplay(jugador, timestampActual);
-        }
+        setEstadoDisplay(jugador, timestampActual);
 
         return display;
     }
@@ -122,6 +120,7 @@ public final class RelojAnalogico extends RelojItem<Long> {
     @Override
     protected void onOcultarDisplay(Player jugador) {
         jugador.stopSound(SONIDO_TICTAC, SoundCategory.MASTER);
+        setEstadoDisplay(jugador, null);
     }
 
     /**

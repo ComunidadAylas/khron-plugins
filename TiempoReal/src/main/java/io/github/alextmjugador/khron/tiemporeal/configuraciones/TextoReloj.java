@@ -19,7 +19,8 @@ package io.github.alextmjugador.khron.tiemporeal.configuraciones;
 
 import org.bukkit.ChatColor;
 
-import io.github.alextmjugador.khron.libconfig.ParametroConfiguracion;
+import io.github.alextmjugador.khron.libconfig.NotificableCambioConfiguracion;
+import io.github.alextmjugador.khron.libconfig.ParametroConfiguracionNotificado;
 import io.github.alextmjugador.khron.tiemporeal.PluginTiempoReal;
 
 /**
@@ -28,7 +29,7 @@ import io.github.alextmjugador.khron.tiemporeal.PluginTiempoReal;
  *
  * @author AlexTMjugador
  */
-public class TextoReloj extends ParametroConfiguracion<String, String> {
+public class TextoReloj extends ParametroConfiguracionNotificado<String, String> {
     /**
      * La palabra clave que debe de contener el valor del parámetro de configuración
      * para ser válido. Se sustituirá por el display del reloj.
@@ -64,11 +65,16 @@ public class TextoReloj extends ParametroConfiguracion<String, String> {
     private String valorSinProcesar;
 
     public TextoReloj() {
-        this(RUTA_CONFIG, ID_CONFIG, PERMISO_CONFIG);
+        this(RUTA_CONFIG, ID_CONFIG, PERMISO_CONFIG, new PluginTiempoReal.NotificableConfigTextoReloj());
     }
 
-    protected TextoReloj(String rutaConfig, String idCondig, String permisoConfig) {
-        super(PluginTiempoReal.getProvidingPlugin(PluginTiempoReal.class), rutaConfig, idCondig, permisoConfig);
+    protected TextoReloj(
+        String rutaConfig, String idConfig, String permisoConfig, NotificableCambioConfiguracion<String> notificable
+    ) {
+        super(
+            PluginTiempoReal.getPlugin(PluginTiempoReal.class), rutaConfig,
+            idConfig, permisoConfig, notificable
+        );
     }
 
     @Override

@@ -22,12 +22,14 @@ import java.util.Map;
 import org.bukkit.command.TabExecutor;
 
 import io.github.alextmjugador.khron.libconfig.ComandosConfiguracion;
+import io.github.alextmjugador.khron.libconfig.NotificableCambioConfiguracion;
 import io.github.alextmjugador.khron.libconfig.PluginConfigurable;
 import io.github.alextmjugador.khron.tiemporeal.configuraciones.ClaveWeatherbit;
 import io.github.alextmjugador.khron.tiemporeal.configuraciones.MapaParametrosSimulacionMundo;
 import io.github.alextmjugador.khron.tiemporeal.configuraciones.ParametrosSimulacionMundo;
 import io.github.alextmjugador.khron.tiemporeal.configuraciones.TextoReloj;
 import io.github.alextmjugador.khron.tiemporeal.configuraciones.TextoRelojDimensionSinCiclo;
+import io.github.alextmjugador.khron.tiemporeal.relojes.Reloj;
 import io.github.alextmjugador.khron.tiemporeal.relojes.RelojAnalogico;
 import io.github.alextmjugador.khron.tiemporeal.relojes.RelojDigital;
 
@@ -192,5 +194,30 @@ public final class PluginTiempoReal extends PluginConfigurable {
      */
     public String getClaveWeatherbit() {
         return claveWeatherbit == null ? null : claveWeatherbit.getValor();
+    }
+
+    /**
+     * Reacciona al cambio de la configuración del texto de reloj.
+     *
+     * @author AlexTMjugador
+     */
+    public static final class NotificableConfigTextoReloj implements NotificableCambioConfiguracion<String> {
+        @Override
+        public void onNewConfig(String antiguoValor, String nuevoValor) {
+            Reloj.actualizarComponentesTextoReloj(nuevoValor);
+        }
+    }
+
+    /**
+     * Reacciona al cambio de la configuración del texto de reloj para dimensiones
+     * sin ciclo día-noche.
+     *
+     * @author AlexTMjugador
+     */
+    public static final class NotificableConfigTextoRelojDimensionSinCiclo implements NotificableCambioConfiguracion<String> {
+        @Override
+        public void onNewConfig(String antiguoValor, String nuevoValor) {
+            Reloj.actualizarComponentesTextoRelojDimensionSinCiclo(nuevoValor);
+        }
     }
 }

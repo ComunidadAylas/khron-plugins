@@ -34,6 +34,9 @@ public interface NotificableCambioConfiguracion<T> {
      * fin), y debe tener en cuenta que, cuando se llama este método, aún no se ha
      * actualizado el valor asociado al objeto que representa en memoria el
      * parámetro de configuración correspondiente.
+     * <p>
+     * Se garantiza que {@code nuevoValor} tiene un valor válido.
+     * </p>
      * 
      * @param antiguoValor El antiguo valor que tenía el parámetro de configuración.
      * @param nuevoValor   El nuevo valor que tendrá el parámetro de configuración.

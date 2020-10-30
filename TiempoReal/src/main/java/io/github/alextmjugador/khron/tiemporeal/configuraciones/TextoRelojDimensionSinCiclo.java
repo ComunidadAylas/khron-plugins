@@ -17,6 +17,8 @@
  */
 package io.github.alextmjugador.khron.tiemporeal.configuraciones;
 
+import io.github.alextmjugador.khron.tiemporeal.PluginTiempoReal;
+
 /**
  * Modela un parámetro de configuración que contiene el texto a mostrar cuando
  * un jugador empuñe un reloj en una dimensión donde no hay un ciclo día-noche.
@@ -42,6 +44,6 @@ public final class TextoRelojDimensionSinCiclo extends TextoReloj {
     private static final String PERMISO_CONFIG = "tiemporeal.trconfig.textoRelojDimensionSinCiclo";
 
     public TextoRelojDimensionSinCiclo() {
-        super(RUTA_CONFIG, ID_CONFIG, PERMISO_CONFIG);
+        super(RUTA_CONFIG, ID_CONFIG, PERMISO_CONFIG, new PluginTiempoReal.NotificableConfigTextoRelojDimensionSinCiclo());
     }
 }

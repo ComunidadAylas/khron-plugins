@@ -491,6 +491,7 @@ public final class SimuladorTiempo implements Listener, NotificableCambioConfigu
         public void run() {
             Instant ahora = Instant.now();
             Logger loggerPlugin = PluginTiempoReal.getPlugin(PluginTiempoReal.class).getSLF4JLogger();
+            Location posicion = new Location(null, 0, 0, 0);
 
             Map<String, ParametrosSimulacionMundo> parametrosSimulacionMundos = PluginTiempoReal
                 .getPlugin(PluginTiempoReal.class).getParametrosSimulacionMundo();
@@ -563,12 +564,12 @@ public final class SimuladorTiempo implements Listener, NotificableCambioConfigu
 
                     // Ahora simular el tiempo de reloj y atmosférico particular para cada jugador
                     for (Player p : w.getPlayers()) {
-                        Location posicionOjos = p.getEyeLocation();
+                        p.getLocation(posicion);
 
                         // Obtener el ángulo de desplazamiento respecto al punto de aparición, a partir
                         // de la distancia en latitud y longitud
-                        double deltax = (puntoAparicionMundo.getX() - posicionOjos.getX()) / radio;
-                        double deltaz = (puntoAparicionMundo.getZ() - posicionOjos.getZ()) / radio;
+                        double deltax = (puntoAparicionMundo.getX() - posicion.getX()) / radio;
+                        double deltaz = (puntoAparicionMundo.getZ() - posicion.getZ()) / radio;
 
                         // Sumar el desplazamiento a la latitud y longitud del punto de aparición
                         double latitudJugador = latitudSpawn + deltaz;
@@ -580,9 +581,9 @@ public final class SimuladorTiempo implements Listener, NotificableCambioConfigu
                             try {
                                 long tiempoJugador = cacheTiemposCalculados.get(
                                     new Vector(
-                                        Math.floor(posicionOjos.getX() / umbralAgrupamiento),
+                                        Math.floor(posicion.getX() / umbralAgrupamiento),
                                         0,
-                                        Math.floor(posicionOjos.getZ() / umbralAgrupamiento)
+                                        Math.floor(posicion.getZ() / umbralAgrupamiento)
                                     ), () -> {
                                         return arcoDiurnoSolar.getTiempoJugador(
                                             ahora, w, latitudJugador, longitudJugador

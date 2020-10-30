@@ -170,10 +170,10 @@ public abstract class RelojItem<T> extends Reloj<T> {
      * de las condiciones estipuladas en la implementación por defecto.
      */
     protected final boolean leCorrespondeVerDisplay(Player p) {
-        PlayerInventory pinv = super.leCorrespondeVerDisplay(p) ? p.getInventory() : null;
+        PlayerInventory pinv;
 
-        return pinv != null && (
-            lePermiteStackVerReloj(p, pinv.getItemInMainHand()) ||
+        return super.leCorrespondeVerDisplay(p) && (
+            lePermiteStackVerReloj(p, (pinv = p.getInventory()).getItemInMainHand()) ||
             lePermiteStackVerReloj(p, pinv.getItemInOffHand())
         );
     }

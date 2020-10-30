@@ -20,7 +20,7 @@ package io.github.alextmjugador.khron.libconfig;
 import org.bukkit.plugin.Plugin;
 
 /**
- * Modela un parámetro de configuración que notifica a un método estático de una
+ * Modela un parámetro de configuración que notifica a un método de una
  * determinada clase cuando se produce un cambio en él.
  *
  * @param <E> El tipo de dato del parámetro de configuración.
