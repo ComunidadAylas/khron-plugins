@@ -17,8 +17,6 @@
  */
 package io.github.alextmjugador.khron.tiemporeal.relojes;
 
-import static org.bukkit.Bukkit.getServer;
-
 import java.time.ZonedDateTime;
 import java.time.format.TextStyle;
 import java.util.Locale;
@@ -67,11 +65,6 @@ public final class RelojDigital extends RelojItem<Byte> {
     private static final Locale LOCALIZACION_ESP = new Locale("es");
 
     /**
-     * El stack de ítems que representa al menos un reloj digital en un inventario.
-     */
-    private static final ItemStack STACK_RELOJ_DIGITAL;
-
-    /**
      * Espacio que se puede mostrar en el display.
      */
     private static final TextComponent ESPACIO;
@@ -113,13 +106,6 @@ public final class RelojDigital extends RelojItem<Byte> {
     private final Location ultimaPosicionTemp = new Location(null, 0, 0, 0);
 
     static {
-        // Crear el stack de reloj digital
-        STACK_RELOJ_DIGITAL = new ItemStack(Material.CLOCK);
-        ItemMeta meta = getServer().getItemFactory().getItemMeta(STACK_RELOJ_DIGITAL.getType());
-
-        meta.setCustomModelData(ID_MODELO);
-        STACK_RELOJ_DIGITAL.setItemMeta(meta);
-
         // Crear un componente de texto con un espacio
         ESPACIO = new TextComponent(" ");
 
@@ -164,7 +150,12 @@ public final class RelojDigital extends RelojItem<Byte> {
 
     @Override
     protected boolean lePermiteStackVerReloj(Player jugador, ItemStack stack) {
-        return stack.isSimilar(STACK_RELOJ_DIGITAL);
+        ItemMeta metaStack;
+
+        return stack.getType() == Material.CLOCK &&
+            stack.hasItemMeta() &&
+            (metaStack = stack.getItemMeta()).hasCustomModelData() &&
+            metaStack.getCustomModelData() == ID_MODELO;
     }
 
     @Override
@@ -251,17 +242,22 @@ public final class RelojDigital extends RelojItem<Byte> {
 
     @Override
     protected boolean debeJugadorRecibirActualizaciones(Player jugador, boolean mundoConCicloDiaNoche) {
-        PlayerInventory pinv;
+        boolean toret = false;
 
         // Enviar actualizaciones a jugadores que tengan al menos un reloj digital en su inventario
         // y estén en un mundo con ciclo día-noche.
-        // El método containsAtLeast no es suficiente porque compara los stacks en getStorageContents,
-        // que delega en el atributo items de la clase net.minecraft.world.entity.player.Inventory.
+        // getStorageContents delega en el atributo items de la clase net.minecraft.world.entity.player.Inventory.
         // Actualmente (1.16.3), el stack de la mano secundaria va aparte, y no se incluye en ese atributo
-        boolean toret = mundoConCicloDiaNoche && (
-            (pinv = jugador.getInventory()).containsAtLeast(STACK_RELOJ_DIGITAL, 1) ||
-            pinv.getItemInOffHand().isSimilar(STACK_RELOJ_DIGITAL)
-        );
+        if (mundoConCicloDiaNoche) {
+            PlayerInventory pinv = jugador.getInventory();
+            ItemStack[] itemsInventario = pinv.getStorageContents();
+
+            for (int i = 0; i < itemsInventario.length && !toret; ++i) {
+                toret = lePermiteStackVerReloj(jugador, itemsInventario[i]);
+            }
+
+            toret = toret || lePermiteStackVerReloj(jugador, pinv.getItemInOffHand());
+        }
 
         // En caso de que dejemos de recibir actualizaciones (es decir, no tengamos el reloj en el inventario),
         // eliminar el estado del display. De esta forma, si pasa una hora y volvemos a coger el reloj, no
@@ -275,7 +271,7 @@ public final class RelojDigital extends RelojItem<Byte> {
 
     @Override
     protected void onActualizacionReloj(ZonedDateTime fechaHora, Player jugador, World mundo, boolean mundoConCicloDiaNoche) {
-        byte hora = (byte) fechaHora.getMinute();
+        byte hora = (byte) fechaHora.getHour();
         Byte ultimaHora = getEstadoDisplay(jugador);
 
         if (ultimaHora != null && hora != ultimaHora) {

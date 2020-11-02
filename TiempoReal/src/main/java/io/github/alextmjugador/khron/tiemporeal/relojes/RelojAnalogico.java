@@ -25,6 +25,7 @@ import org.bukkit.SoundCategory;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -62,10 +63,12 @@ public final class RelojAnalogico extends RelojItem<Long> {
 
     @Override
     protected boolean lePermiteStackVerReloj(Player jugador, ItemStack stack) {
-        return Material.CLOCK.equals(stack.getType()) &&
+        ItemMeta metaItem;
+
+        return stack.getType() == Material.CLOCK &&
             stack.hasItemMeta() &&
-            stack.getItemMeta().hasCustomModelData() &&
-            stack.getItemMeta().getCustomModelData() == 2;
+            (metaItem = stack.getItemMeta()).hasCustomModelData() &&
+            metaItem.getCustomModelData() == 2;
     }
 
     @Override
