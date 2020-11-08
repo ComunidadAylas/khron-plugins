@@ -253,7 +253,9 @@ public final class RelojDigital extends RelojItem<Byte> {
             ItemStack[] itemsInventario = pinv.getStorageContents();
 
             for (int i = 0; i < itemsInventario.length && !toret; ++i) {
-                toret = lePermiteStackVerReloj(jugador, itemsInventario[i]);
+                // En ocasiones las posiciones del array pueden ser nulas debido a cómo funciona
+                // Minecraft. Ignorarlas a efectos de comparación
+                toret = itemsInventario[i] != null && lePermiteStackVerReloj(jugador, itemsInventario[i]);
             }
 
             toret = toret || lePermiteStackVerReloj(jugador, pinv.getItemInOffHand());
