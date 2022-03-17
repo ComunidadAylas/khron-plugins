@@ -93,7 +93,7 @@ public final class ComandosConfiguracion implements TabExecutor {
      */
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        boolean toret = seDebeAtender(command, sender);
+        boolean toret = seDebeAtender(command, sender) && args.length > 1;
 
         if (toret) {
             String nombreComando = command.getName();
