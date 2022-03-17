@@ -126,12 +126,6 @@ public final class SimuladorTiempo implements Listener, NotificableCambioConfigu
     );
 
     /**
-     * Alberga cuándo se ha solicitado por última vez un cálculo a un
-     * determinado clima.
-     */
-    private final Map<Clima, Long> ultimoCalculoClima = new HashMap<>(3);
-
-    /**
      * La caché de tiempos de reloj simulados calculados para cada mundo, usada
      * para evitar repetir cálculos en cada tick de la simulación.
      */
@@ -437,7 +431,7 @@ public final class SimuladorTiempo implements Listener, NotificableCambioConfigu
      */
     private void comenzarSimulacion(World w) {
         DatosSimulacion anterioresDatos = mundosSimulados.putIfAbsent(
-            w, new DatosSimulacion(w.getGameRuleValue(GameRule.DO_DAYLIGHT_CYCLE), null)
+            w, new DatosSimulacion(w.getGameRuleValue(GameRule.DO_DAYLIGHT_CYCLE))
         );
 
         if (w != null && anterioresDatos == null) {
@@ -510,7 +504,10 @@ public final class SimuladorTiempo implements Listener, NotificableCambioConfigu
                     double radio = parametrosSimulacionMundo.getRadio() * 1000.0; // Pasar a metros
                     ArcoDiurnoSolar arcoDiurnoSolar = parametrosSimulacionMundo.getArcoDiurnoSolar();
                     Clima clima = parametrosSimulacionMundo.getClima();
-                    float maximosCalculosClimaDia = clima.maximasInvocacionesPorDiaPermitidas();
+                    float maximosCalculosClimaDia = clima.maximasInvocacionesPorDiaPermitidas() /
+                        mundosSimulados.keySet().stream()
+                        .filter((World otroMundo) -> parametrosSimulacionMundos.get(otroMundo.getName()).getClima().equals(clima))
+                        .count();
                     boolean climaSimulado = clima.simulaMeteorologia();
                     boolean tiempoSimulado = arcoDiurnoSolar.simulaPlaneta();
 
@@ -549,7 +546,7 @@ public final class SimuladorTiempo implements Listener, NotificableCambioConfigu
                     // Calcular el clima del mundo si corresponde
                     if (climaSimulado) {
                         actualizarMeteorologia(
-                            clima, latitudSpawn, longitudSpawn, maximosCalculosClimaDia,
+                            clima, datosSimulacion, latitudSpawn, longitudSpawn, maximosCalculosClimaDia,
                             (TiempoAtmosferico t, InformacionMeteorologica i) -> {
                                 t.aplicarAMundo(w);
                                 datosSimulacion.setUltimaTemperaturaSimulada(i.getTemperatura());
@@ -612,7 +609,7 @@ public final class SimuladorTiempo implements Listener, NotificableCambioConfigu
                         // el proveedor de tiempo atmosférico usado va sobrado de cálculos disponibles
                         if (climaSimulado && maximosCalculosClimaDia >= umbralCalculos) {
                             actualizarMeteorologia(
-                                clima, latitudJugador, longitudJugador, maximosCalculosClimaDia,
+                                clima, datosSimulacion, latitudJugador, longitudJugador, maximosCalculosClimaDia,
                                 (TiempoAtmosferico t, InformacionMeteorologica i) -> {
                                     t.aplicarAJugador(p);
                                     ultimaInformacionMeteorologicaSimulada.put(p, i);
@@ -631,27 +628,28 @@ public final class SimuladorTiempo implements Listener, NotificableCambioConfigu
         }
 
         /**
-         * Actualiza el tiempo atmosférico visible para un objeto, ejecutando la
-         * acción especificada con él como parámetro.
+         * Actualiza el tiempo atmosférico visible para un objeto, ejecutando la acción
+         * especificada con él como parámetro.
          *
-         * @param clima                   El clima del mundo relacionado, que se
-         *                                asume no nulo.
-         * @param latitud                 La latitud del lugar del que obtener
-         *                                el tiempo atmosférico.
-         * @param longitud                La longitud del lugar del que obtener
-         *                                el tiempo atmosférico.
+         * @param clima                   El clima del mundo relacionado, que se asume
+         *                                no nulo.
+         * @param datosSimulacion         Los datos de simulación del mundo relacionado,
+         *                                que se asumen no nulos.
+         * @param latitud                 La latitud del lugar del que obtener el tiempo
+         *                                atmosférico.
+         * @param longitud                La longitud del lugar del que obtener el
+         *                                tiempo atmosférico.
          * @param maximosCalculosClimaDia El número máximo de cálculos de tiempo
          *                                atmosférico permitidos para el clima
          *                                especificado.
-         * @param accion                  La acción a ejecutar para aplicar el
-         *                                clima especificado al objeto que se
-         *                                desee.
+         * @param accion                  La acción a ejecutar para aplicar el clima
+         *                                especificado al objeto que se desee.
          */
         private void actualizarMeteorologia(
-            Clima clima, double latitud, double longitud, float maximosCalculosClimaDia, BiConsumer<TiempoAtmosferico, InformacionMeteorologica> accion
+            Clima clima, DatosSimulacion datosSimulacion, double latitud, double longitud, float maximosCalculosClimaDia, BiConsumer<TiempoAtmosferico, InformacionMeteorologica> accion
         ) {
-            long msDesdeUltimoCalculoClima = ultimoCalculoClima.containsKey(clima) ?
-                System.currentTimeMillis() - ultimoCalculoClima.get(clima) :
+            long msDesdeUltimoCalculoClima = datosSimulacion.getUltimoCalculoClima() != null ?
+                System.currentTimeMillis() - datosSimulacion.getUltimoCalculoClima() :
                 Long.MAX_VALUE;
 
             long msIntervaloCalculoClima = (long) Math.ceil(86400000 / maximosCalculosClimaDia);
@@ -674,7 +672,7 @@ public final class SimuladorTiempo implements Listener, NotificableCambioConfigu
                         exc
                     );
                 } finally {
-                    ultimoCalculoClima.put(clima, System.currentTimeMillis());
+                    datosSimulacion.refrescarUltimoCalculoClima();
                 }
             }
         }
@@ -698,10 +696,12 @@ public final class SimuladorTiempo implements Listener, NotificableCambioConfigu
     private static final class DatosSimulacion {
         private final boolean haciaCicloDiaNoche;
         private Float ultimaTemperaturaSimulada;
+        private Long ultimoCalculoClima;
 
-        public DatosSimulacion(boolean haciaCicloDiaNoche, Float ultimaTemperaturaSimulada) {
+        public DatosSimulacion(boolean haciaCicloDiaNoche) {
             this.haciaCicloDiaNoche = haciaCicloDiaNoche;
-            this.ultimaTemperaturaSimulada = ultimaTemperaturaSimulada;
+            this.ultimaTemperaturaSimulada = null;
+            this.ultimoCalculoClima = null;
         }
 
         /**
@@ -722,6 +722,23 @@ public final class SimuladorTiempo implements Listener, NotificableCambioConfigu
          */
         public void setUltimaTemperaturaSimulada(Float ultimaTemperaturaSimulada) {
             this.ultimaTemperaturaSimulada = ultimaTemperaturaSimulada;
+        }
+
+        /**
+         * Obtiene la última vez en la que se calculó el clima de un mundo.
+         *
+         * @return La última vez en la que se calculó el clima de un mundo. Puede ser
+         *         nulo si no se ha calculado el clima aún.
+         */
+        public Long getUltimoCalculoClima() {
+            return ultimoCalculoClima;
+        }
+
+        /**
+         * Establece la última vez que se calculó el clima de un mundo al momento actual.
+         */
+        public void refrescarUltimoCalculoClima() {
+            this.ultimoCalculoClima = System.currentTimeMillis();
         }
 
         /**

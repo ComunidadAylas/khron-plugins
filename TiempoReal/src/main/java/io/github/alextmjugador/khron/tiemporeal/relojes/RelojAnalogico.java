@@ -42,7 +42,12 @@ public final class RelojAnalogico extends RelojItem<Long> {
      * El sonido que se reproducirá cuando el jugador mantenga empuñado el reloj,
      * para indicar el movimiento de las manecillas.
      */
-    private static final String SONIDO_TICTAC = "custom.reloj_analogico_tictac";
+    private static final String SONIDO_TICTAC = "khron.misc.reloj_analogico_tictac";
+
+    /**
+     * El identificador del modelo personalizado del reloj.
+     */
+    private static final int ID_MODELO = 2;
 
     /**
      * Restringe la instanciación de esta clase a otras clases.
@@ -68,7 +73,7 @@ public final class RelojAnalogico extends RelojItem<Long> {
         return stack.getType() == Material.CLOCK &&
             stack.hasItemMeta() &&
             (metaItem = stack.getItemMeta()).hasCustomModelData() &&
-            metaItem.getCustomModelData() == 2;
+            metaItem.getCustomModelData() == ID_MODELO;
     }
 
     @Override

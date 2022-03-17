@@ -43,15 +43,15 @@ public final class FactoriaClima {
      */
     public static Clima crearPorNombre(String nombreClima) {
         try {
-            Class<?> claseArco = Class.forName(FactoriaClima.class.getPackage().getName() + "." + nombreClima);
-            int modificadoresClaseArco = claseArco.getModifiers();
+            Class<?> claseClima = Class.forName(FactoriaClima.class.getPackage().getName() + "." + nombreClima);
+            int modificadoresClaseClima = claseClima.getModifiers();
 
             if (
-                Clima.class.isAssignableFrom(claseArco) &&
-                !Modifier.isAbstract(modificadoresClaseArco) &&
-                !Modifier.isInterface(modificadoresClaseArco)
+                Clima.class.isAssignableFrom(claseClima) &&
+                !Modifier.isAbstract(modificadoresClaseClima) &&
+                !Modifier.isInterface(modificadoresClaseClima)
             ) {
-                return (Clima) claseArco.getDeclaredConstructor().newInstance();
+                return (Clima) claseClima.getDeclaredConstructor().newInstance();
             } else {
                 throw new IllegalAccessException("La clase especificada no implementa un clima");
             }

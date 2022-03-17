@@ -4,7 +4,7 @@ version: ${version}
 author: Khron. Para más información ver repositorio de GitHub
 main: io.github.alextmjugador.khron.tiemporeal.PluginTiempoReal
 depend: [LibConfig]
-api-version: 1.16
+api-version: 1.18
 commands:
     trconfig:
         description: Cambia la configuración.
