@@ -17,16 +17,16 @@
 
 # El URL base que se usará para construir el URL de descarga de la
 # bifurcación de Enigma de Fabric
-readonly URL_DESCARGA_ENIGMA=https://maven.fabricmc.net/cuchaz/enigma-cli/0.21.5%2Bbuild.226/enigma-cli-0.21.5%2Bbuild.226-all.jar
+readonly URL_DESCARGA_ENIGMA=https://maven.fabricmc.net/cuchaz/enigma-cli/1.4.1/enigma-cli-1.4.1-all.jar
 # Los URL de descarga del JAR y sus mapeos de ofuscación de Proguard.
 # Pueden deducirse a partir de la respuesta dada por
 # https://launchermeta.mojang.com/mc/game/version_manifest.json,
 # donde el JSON de cada versión de "versions" sigue el formato definido en
 # https://minecraft.gamepedia.com/Client.json
-readonly URL_DESCARGA_JAR_SERVER=https://launcher.mojang.com/v1/objects/f02f4473dbf152c23d7d484952121db0b36698cb/server.jar
-readonly URL_DESCARGA_MAPEOS_PROGUARD_SERVER=https://launcher.mojang.com/v1/objects/e75ff1e729aec4a3ec6a94fe1ddd2f5a87a2fd00/server.txt
-readonly URL_DESCARGA_JAR_CLIENT=https://launcher.mojang.com/v1/objects/1321521b2caf934f7fc9665aab7e059a7b2bfcdf/client.jar
-readonly URL_DESCARGA_MAPEOS_PROGUARD_CLIENT=https://launcher.mojang.com/v1/objects/faac5028fbca3859db970cc4ca041aeec55f6d9d/client.txt
+readonly URL_DESCARGA_JAR_SERVER=https://launcher.mojang.com/v1/objects/a16d67e5807f57fc4e550299cf20226194497dc2/server.jar
+readonly URL_DESCARGA_MAPEOS_PROGUARD_SERVER=https://launcher.mojang.com/v1/objects/f6cae1c5c1255f68ba4834b16a0da6a09621fe13/server.txt
+readonly URL_DESCARGA_JAR_CLIENT=https://launcher.mojang.com/v1/objects/8d9b65467c7913fcf6f5b2e729d44a1e00fde150/client.jar
+readonly URL_DESCARGA_MAPEOS_PROGUARD_CLIENT=https://launcher.mojang.com/v1/objects/e4d540e0cba05a6097e885dffdf363e621f87d3f/client.txt
 # El ejecutable de Java a usar. Si se deja en blanco, se deducirá
 # a partir de la variable de entorno PATH
 readonly EJECUTABLE_JAVA=
@@ -60,6 +60,6 @@ else
 	"${EJECUTABLE_JAVA:-java}" -jar "$DIRECTORIO_FICHEROS/enigma-cli.jar" convert-mappings \
 	'Proguard' "$DIRECTORIO_FICHEROS/$1.txt" 'enigma_zip' "$DIRECTORIO_FICHEROS/$1_enigma.zip" && \
 	echo '> Decompilando...' && \
-	"${EJECUTABLE_JAVA:-java}" -jar "$DIRECTORIO_FICHEROS/enigma-cli.jar" decompile 'CFR' \
+	"${EJECUTABLE_JAVA:-java}" -Xmx16G -jar "$DIRECTORIO_FICHEROS/enigma-cli.jar" decompile 'CFR' \
 	"$DIRECTORIO_FICHEROS/$1.jar" "$DIRECTORIO_FICHEROS/codigo-fuente-$1" "$DIRECTORIO_FICHEROS/$1_enigma.zip"
 fi
