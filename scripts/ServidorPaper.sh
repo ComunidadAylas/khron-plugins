@@ -16,7 +16,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 # El URL desde el que se descargará el JAR principal de Paper
-readonly URL_DESCARGA_PAPER=https://papermc.io/ci/job/Paper-1.16/lastSuccessfulBuild/artifact/paperclip.jar
+readonly URL_DESCARGA_PAPER=https://papermc.io/api/v2/projects/paper/versions/1.18.2/builds/259/downloads/paper-1.18.2-259.jar
 # El ejecutable de Java a usar. Si se deja en blanco, se deducirá
 # a partir de la variable de entorno PATH
 readonly EJECUTABLE_JAVA=
@@ -99,10 +99,10 @@ SERVER_PROPERTIES
 # with caution, and make sure you know what each option does before configuring.
 # For a reference for any variable inside this file, check out the Spigot wiki at
 # http://www.spigotmc.org/wiki/spigot-configuration/
-# 
+#
 # If you need help with the configuration or have any questions related to Spigot,
 # join us at the IRC or drop by our forums and leave a post.
-# 
+#
 # IRC: #spigot @ irc.spi.gt ( http://www.spigotmc.org/pages/irc/ )
 # Forums: http://www.spigotmc.org/
 
@@ -233,14 +233,14 @@ SPIGOT_YML
 # This is the main configuration file for Paper.
 # As you can see, there's tons to configure. Some options may impact gameplay, so use
 # with caution, and make sure you know what each option does before configuring.
-# 
+#
 # If you need help with the configuration or have any questions related to Paper,
 # join us in our Discord or IRC channel.
-# 
+#
 # Discord: https://paperdiscord.emc.gs
 # IRC: #paper @ irc.spi.gt ( http://irc.spi.gt/iris/?channels=paper )
-# Website: https://papermc.io/ 
-# Docs: https://paper.readthedocs.org/ 
+# Website: https://papermc.io/
+# Docs: https://paper.readthedocs.org/
 
 verbose: false
 config-version: 17
