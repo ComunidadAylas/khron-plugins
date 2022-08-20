@@ -110,7 +110,11 @@ public final class SimuladorHipotermia extends BukkitRunnable implements Listene
 			p.lockFreezeTicks(true);
 
 			// Los jugadores muertos, en modo creativo o espectador no tienen frío
-			if (p.getGameMode().equals(GameMode.CREATIVE) || p.getGameMode().equals(GameMode.SPECTATOR) || p.isDead()) {
+			if (
+				p.getGameMode().equals(GameMode.CREATIVE) ||
+				p.getGameMode().equals(GameMode.SPECTATOR) ||
+				p.isDead()
+			) {
 				p.setFreezeTicks(0);
 				continue;
 			}
@@ -123,14 +127,14 @@ public final class SimuladorHipotermia extends BukkitRunnable implements Listene
 			} else {
 				// Congelar o descongelar al jugador dependiendo de la diferencia de temperaturas
 				float temperatura = SimuladorTiempo.get().getTemperatura(p);
-				float temperaturaMaxima = ajustarTemperaturaMaximaEnBaseAEquipamiento(p);
+				float temperaturaMaxima = ajustarTemperaturaMaximaEnBaseAEquipamiento(p) + 0.5f;
 				deltaCongelacion = temperaturaMaxima - temperatura;
 			}
 
 			// Avisar al jugador si se está empezando a congelar
 			int ticksCongelacion = p.getFreezeTicks();
 			if (ticksCongelacion <= 0) {
-				if (deltaCongelacion > 0 && deltaCongelacion < 4) {
+				if (deltaCongelacion > 1 && deltaCongelacion < 4) {
 					p.sendMessage(
 						ChatColor.AQUA + "❄ Hace frío por aquí. Abrígate o busca una fuente de calor."
 					);
