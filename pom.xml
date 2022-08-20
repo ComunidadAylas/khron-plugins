@@ -1,106 +1,116 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <groupId>io.github.alextmjugador.khron</groupId>
-    <artifactId>Minecraft-Khron-Plugins</artifactId>
-    <version>1.3.0</version>
-    <packaging>pom</packaging>
-    <name>Minecraft Khron: plugins</name>
-    <description>Proyecto que contiene todos los plugins desarrollados por y para el servidor de Minecraft Khron.</description>
-    
-    <!-- Plugins contenidos por este proyecto -->
-    <modules>
-        <module>TiempoReal</module>
-        <module>LibConfig</module>
-    </modules>
-    
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-    
-    <build>
-        <resources>
-            <resource>
-                <directory>${project.basedir}/../common/resources</directory>
-                <filtering>true</filtering>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-            </resource>
-        </resources>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
-                <configuration>
-                    <release>17</release>
-                    <showDeprecation>true</showDeprecation>
-                    <showWarnings>true</showWarnings>
-                    <compilerArgs>
-                        <!-- Mostrar todas las advertencias de compilación -->
-                        <arg>-Xlint:all</arg>
-                        <!-- Comprobar corrección del Javadoc -->
-                        <arg>-Xdoclint:all/private</arg>
-                    </compilerArgs>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.2.0</version>
-                <configuration>
-                    <outputDirectory>${project.basedir}/../jar</outputDirectory>
-                    <archive>
-                        <addMavenDescriptor>false</addMavenDescriptor>
-                        <manifestEntries>
-                            <url>https://github.com/ComunidadAylas/khron-plugins</url>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.2.0</version>
-                <configuration>
-                    <additionalOptions>-html5</additionalOptions>
-                    <detectLinks>true</detectLinks>
-                    <footer>Comunidad Aylas</footer>
-                    <show>private</show>
-                    <reportOutputDirectory>${project.basedir}</reportOutputDirectory>
-                    <destDir>javadoc</destDir>
-                    <tags>
-                        <!-- Etiqueta para indicar cosas pendientes de codificar -->
-                        <tag>
-                            <name>todo.</name>
-                            <placement>a</placement>
-                            <head>Pendiente:</head>
-                        </tag>
-                    </tags>
-                    <!-- Enlaces a documentación de librerías y APIs -->
-                    <links>
-                        <link>https://papermc.io/javadocs/</link>
-                    </links>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-    
-    <repositories>
-        <repository>
-            <id>papermc</id>
-            <url>https://papermc.io/repo/repository/maven-public/</url>
-        </repository>
-    </repositories>
-    
-    <dependencies>
-        <dependency>
-            <groupId>io.papermc.paper</groupId>
-            <artifactId>paper-api</artifactId>
-            <version>1.18.2-R0.1-SNAPSHOT</version>
-            <scope>provided</scope>
-        </dependency>
-    </dependencies>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>io.github.alextmjugador.khron</groupId>
+	<artifactId>Minecraft-Khron-Plugins</artifactId>
+	<version>1.3.0</version>
+	<packaging>pom</packaging>
+	<name>Minecraft Khron: plugins</name>
+	<description>Proyecto que contiene todos los plugins desarrollados por y para el servidor de Minecraft Khron.</description>
+
+	<!-- Plugins contenidos por este proyecto -->
+	<modules>
+		<module>TiempoReal</module>
+		<module>LibConfig</module>
+	</modules>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<build>
+		<resources>
+			<resource>
+				<directory>${project.basedir}/../common/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
+				<configuration>
+					<release>17</release>
+					<showDeprecation>true</showDeprecation>
+					<showWarnings>true</showWarnings>
+					<compilerArgs>
+						<!-- Mostrar todas las advertencias de compilación -->
+						<arg>-Xlint:all</arg>
+						<!-- Comprobar corrección del Javadoc -->
+						<arg>-Xdoclint:all/private</arg>
+					</compilerArgs>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.2.0</version>
+				<configuration>
+					<outputDirectory>${project.basedir}/../jar</outputDirectory>
+					<archive>
+						<addMavenDescriptor>false</addMavenDescriptor>
+						<manifestEntries>
+							<url>https://github.com/ComunidadAylas/khron-plugins</url>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>3.2.0</version>
+				<configuration>
+					<additionalOptions>-html5</additionalOptions>
+					<detectLinks>true</detectLinks>
+					<footer>Comunidad Aylas</footer>
+					<show>private</show>
+					<reportOutputDirectory>${project.basedir}</reportOutputDirectory>
+					<destDir>javadoc</destDir>
+					<tags>
+						<!-- Etiqueta para indicar cosas pendientes de codificar -->
+						<tag>
+							<name>todo.</name>
+							<placement>a</placement>
+							<head>Pendiente:</head>
+						</tag>
+					</tags>
+					<!-- Enlaces a documentación de librerías y APIs -->
+					<links>
+						<link>https://papermc.io/javadocs/</link>
+					</links>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>versions-maven-plugin</artifactId>
+				<version>2.11.0</version>
+				<configuration>
+					<excludeReactor>false</excludeReactor>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<repositories>
+		<repository>
+			<id>papermc</id>
+			<url>https://papermc.io/repo/repository/maven-public/</url>
+		</repository>
+	</repositories>
+
+	<dependencies>
+		<dependency>
+			<groupId>io.papermc.paper</groupId>
+			<artifactId>paper-api</artifactId>
+			<version>1.19.2-R0.1-SNAPSHOT</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
 </project>
