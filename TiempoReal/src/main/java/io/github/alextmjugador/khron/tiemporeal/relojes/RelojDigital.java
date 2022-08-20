@@ -52,7 +52,7 @@ public final class RelojDigital extends RelojItem<Byte> {
      * El sonido que se reproducirá cuando el reloj avance una hora mientras está
      * siendo empuñado por un jugador.
      */
-    private static final String SONIDO_HORA = "khron.misc.reloj_digital_pitidos";
+    private static final String SONIDO_HORA = "khron.misc.clock.digital_clock_beep";
 
     /**
      * El identificador del modelo personalizado del reloj.

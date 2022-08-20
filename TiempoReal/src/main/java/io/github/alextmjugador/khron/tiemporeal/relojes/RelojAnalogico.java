@@ -42,7 +42,7 @@ public final class RelojAnalogico extends RelojItem<Long> {
      * El sonido que se reproducirá cuando el jugador mantenga empuñado el reloj,
      * para indicar el movimiento de las manecillas.
      */
-    private static final String SONIDO_TICTAC = "khron.misc.reloj_analogico_tictac";
+    private static final String SONIDO_TICTAC = "khron.misc.clock.analog_clock_ticktock";
 
     /**
      * El identificador del modelo personalizado del reloj.
