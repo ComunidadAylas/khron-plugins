@@ -38,6 +38,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.SoundCategory;
 import org.bukkit.block.Block;
 
 /**
@@ -59,6 +60,11 @@ public final class SimuladorHipotermia extends BukkitRunnable implements Listene
 	 * hipotermia, y se cancelarán los efectos de la hipotermia.
 	 */
 	private static final float TEMPERATURA_MAXIMA_BASE = 10;
+	/**
+	 * El sonido que se reproducirá para indicarle al jugador que está empezando
+	 * a sufrir efectos de la hipotermia.
+	 */
+	private static final String SONIDO_AVISO_CONGELACION = "khron.misc.freezing";
 
 	/**
 	 * Restringe la instanciación de esta clase a otras clases.
@@ -138,12 +144,14 @@ public final class SimuladorHipotermia extends BukkitRunnable implements Listene
 					p.sendMessage(
 						ChatColor.AQUA + "❄ Hace frío por aquí. Abrígate o busca una fuente de calor."
 					);
+					reproducirSonidoAvisoCongelacion(p, pos);
 				} else if (deltaCongelacion >= 4) {
 					p.sendMessage(Component
 						.text("❄ ¡Hace mucho frío por aquí! ¡Abrígate o busca una fuente de calor inmediatamente!")
 						.color(NamedTextColor.AQUA)
 						.decoration(TextDecoration.BOLD, true)
 					);
+					reproducirSonidoAvisoCongelacion(p, pos);
 				}
 			}
 
@@ -258,6 +266,15 @@ public final class SimuladorHipotermia extends BukkitRunnable implements Listene
 		}
 
 		return temperaturaMaximaBase;
+	}
+
+	/**
+	 * Reproduce el sonido de aviso de congelación para un jugador.
+	 * @param p El jugador para el que reproducir el sonido.
+	 * @param pos La ubicación en el espacio donde se reproducirá el sonido.
+	 */
+	private static void reproducirSonidoAvisoCongelacion(Player p, Location pos) {
+		p.playSound(pos, SONIDO_AVISO_CONGELACION, SoundCategory.MASTER, 0.75f, 1);
 	}
 
 	/**
