@@ -109,8 +109,8 @@ public final class SimuladorHipotermia extends BukkitRunnable implements Listene
 
 			p.lockFreezeTicks(true);
 
-			// Los jugadores en modo creativo o espectador no tienen frío
-			if (p.getGameMode().equals(GameMode.CREATIVE) || p.getGameMode().equals(GameMode.SPECTATOR)) {
+			// Los jugadores muertos, en modo creativo o espectador no tienen frío
+			if (p.getGameMode().equals(GameMode.CREATIVE) || p.getGameMode().equals(GameMode.SPECTATOR) || p.isDead()) {
 				p.setFreezeTicks(0);
 				continue;
 			}
