@@ -16,7 +16,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 # El URL desde el que se descargará el JAR principal de Paper
-readonly URL_DESCARGA_PAPER=https://papermc.io/api/v2/projects/paper/versions/1.18.2/builds/259/downloads/paper-1.18.2-259.jar
+readonly URL_DESCARGA_PAPER=https://api.papermc.io/v2/projects/paper/versions/1.19.2/builds/131/downloads/paper-1.19.2-131.jar
 # El ejecutable de Java a usar. Si se deja en blanco, se deducirá
 # a partir de la variable de entorno PATH
 readonly EJECUTABLE_JAVA=
