@@ -140,7 +140,7 @@ public final class SimuladorHipotermia extends BukkitRunnable implements Listene
 			// Avisar al jugador si se está empezando a congelar
 			int ticksCongelacion = p.getFreezeTicks();
 			if (ticksCongelacion <= 0) {
-				if (deltaCongelacion > 1 && deltaCongelacion < 4) {
+				if (deltaCongelacion >= 1 && deltaCongelacion < 4) {
 					p.sendMessage(
 						ChatColor.AQUA + "❄ Hace frío por aquí. Abrígate o busca una fuente de calor."
 					);
