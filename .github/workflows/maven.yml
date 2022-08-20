@@ -21,3 +21,7 @@ jobs:
         java-version: 17
     - name: Compilar con Maven
       run: mvn -B package --file pom.xml
+    - name: Subir JARs generados
+      uses: actions/upload-artifact@v3
+      with:
+        path: jar
