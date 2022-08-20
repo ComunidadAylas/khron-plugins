@@ -29,6 +29,7 @@ import io.github.alextmjugador.khron.tiemporeal.configuraciones.MapaParametrosSi
 import io.github.alextmjugador.khron.tiemporeal.configuraciones.ParametrosSimulacionMundo;
 import io.github.alextmjugador.khron.tiemporeal.configuraciones.TextoReloj;
 import io.github.alextmjugador.khron.tiemporeal.configuraciones.TextoRelojDimensionSinCiclo;
+import io.github.alextmjugador.khron.tiemporeal.efectostermicos.SimuladorHipotermia;
 import io.github.alextmjugador.khron.tiemporeal.relojes.Reloj;
 import io.github.alextmjugador.khron.tiemporeal.relojes.RelojAnalogico;
 import io.github.alextmjugador.khron.tiemporeal.relojes.RelojDigital;
@@ -135,6 +136,9 @@ public final class PluginTiempoReal extends PluginConfigurable {
             getPluginManager().registerEvents(relojDigital, this);
             getPluginManager().registerEvents(relojAnalogico, this);
 
+            // Registrar simulador de congelación
+            getPluginManager().registerEvents(SimuladorHipotermia.inicializar(), this);
+
             inicializado = true;
         }
     }
@@ -145,6 +149,7 @@ public final class PluginTiempoReal extends PluginConfigurable {
     @Override
     public void onDisable() {
         if (inicializado) {
+            SimuladorHipotermia.detener();
             SimuladorTiempo.get().detenerSimulacion();
             relojDigital.detener();
             relojAnalogico.detener();
