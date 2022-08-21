@@ -58,8 +58,11 @@ public final class SimuladorHipotermia extends BukkitRunnable implements Listene
 	 * más fríos que la temperatura soportada por el jugador, éste padecerá
 	 * hipotermia. En entornos más cálidos que tal temperatura, éste no padecerá
 	 * hipotermia, y se cancelarán los efectos de la hipotermia.
+	 *
+	 * Los efectos de congelación se empezarán a padecer realmente cuando la
+	 * diferencia de temperatura sea igual o mayor a 1ºC de la base.
 	 */
-	private static final float TEMPERATURA_MAXIMA_BASE = 10;
+	private static final float TEMPERATURA_MAXIMA_BASE = Math.nextDown(10 + 1);
 	/**
 	 * El sonido que se reproducirá para indicarle al jugador que está empezando
 	 * a sufrir efectos de la hipotermia.
@@ -133,7 +136,7 @@ public final class SimuladorHipotermia extends BukkitRunnable implements Listene
 			} else {
 				// Congelar o descongelar al jugador dependiendo de la diferencia de temperaturas
 				float temperatura = SimuladorTiempo.get().getTemperatura(p);
-				float temperaturaMaxima = ajustarTemperaturaMaximaEnBaseAEquipamiento(p) + 0.5f;
+				float temperaturaMaxima = ajustarTemperaturaMaximaEnBaseAEquipamiento(p);
 				deltaCongelacion = temperaturaMaxima - temperatura;
 			}
 
