@@ -74,7 +74,7 @@ final class ClimaWeatherbit implements Clima {
     @Override
     public float maximasInvocacionesPorDiaPermitidas() {
         // Asumimos el plan gratuito y accesible de Weatherbit
-        return 500;
+        return 40;
     }
 
     /**
