@@ -2,7 +2,7 @@ name: ${name}
 description: ${description}
 version: ${version}
 author: Khron. Para más información ver repositorio de GitHub
-main: io.github.alextmjugador.khron.tiemporeal.PluginTiempoReal
+main: org.aylas.khron.tiemporeal.PluginTiempoReal
 depend: [LibConfig]
 api-version: 1.19
 commands:

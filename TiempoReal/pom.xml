@@ -9,15 +9,15 @@
 
     <developers>
         <developer>
-            <id>AlexTMjugador (AlexBlocks123)</id>
+            <id>AlexTMjugador</id>
             <name>Alejandro González</name>
             <organization>Aylas</organization>
         </developer>
     </developers>
 
     <parent>
-        <artifactId>Minecraft-Khron-Plugins</artifactId>
-        <groupId>io.github.alextmjugador.khron</groupId>
+        <artifactId>Plugins</artifactId>
+        <groupId>org.aylas.khron</groupId>
         <version>[1.1.0,2.0.0)</version>
     </parent>
 
@@ -53,7 +53,7 @@
             <version>1.1.4</version>
         </dependency>
         <dependency>
-            <groupId>io.github.alextmjugador.khron</groupId>
+            <groupId>org.aylas.khron</groupId>
             <artifactId>LibConfig</artifactId>
             <version>[1.0.0-SNAPSHOT,2.0.0)</version>
             <scope>provided</scope>
