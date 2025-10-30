@@ -37,7 +37,7 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.13.0</version>
 				<configuration>
-					<release>17</release>
+					<release>21</release>
 					<showDeprecation>true</showDeprecation>
 					<showWarnings>true</showWarnings>
 					<compilerArgs>
@@ -101,7 +101,7 @@
 	<repositories>
 		<repository>
 			<id>papermc</id>
-			<url>https://papermc.io/repo/repository/maven-public/</url>
+			<url>https://repo.papermc.io/repository/maven-public/</url>
 		</repository>
 	</repositories>
 
@@ -109,7 +109,7 @@
 		<dependency>
 			<groupId>io.papermc.paper</groupId>
 			<artifactId>paper-api</artifactId>
-			<version>1.19.2-R0.1-SNAPSHOT</version>
+			<version>1.21.8-R0.1-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>

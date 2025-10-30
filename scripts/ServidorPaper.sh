@@ -16,7 +16,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 # El URL desde el que se descargará el JAR principal de Paper
-readonly URL_DESCARGA_PAPER=https://api.papermc.io/v2/projects/paper/versions/1.19.2/builds/131/downloads/paper-1.19.2-131.jar
+readonly URL_DESCARGA_PAPER=https://fill.papermc.io/v3/projects/paper/versions/1.21.10/builds/latest
 # El ejecutable de Java a usar. Si se deja en blanco, se deducirá
 # a partir de la variable de entorno PATH
 readonly EJECUTABLE_JAVA=
@@ -34,10 +34,11 @@ instalarPaper() {
 
 	# Si tenemos un paperclip.jar, solo lo descargaremos si el ofrecido por el servidor es más reciente que el que tenemos
 	echo "> Descargando Paper..."
+	url_jar=$(curl -L "$URL_DESCARGA_PAPER" | jq -r '.downloads["server:default"].url')
 	if [ -f 'paperclip.jar' ]; then
-		codigo_http=$(curl -L -z paperclip.jar -o paperclip.jar -w "%{http_code}" $URL_DESCARGA_PAPER)
+		codigo_http=$(curl -L -z paperclip.jar -o paperclip.jar -w "%{http_code}" "$url_jar")
 	else
-		codigo_http=$(curl -L -o paperclip.jar -w "%{http_code}" $URL_DESCARGA_PAPER)
+		codigo_http=$(curl -L -o paperclip.jar -w "%{http_code}" "$url_jar")
 	fi
 
 	# Propagar error que pudiese haber ocurrido durante la descarga

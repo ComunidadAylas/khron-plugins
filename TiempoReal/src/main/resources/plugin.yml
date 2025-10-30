@@ -4,7 +4,7 @@ version: ${version}
 author: Khron. Para más información ver repositorio de GitHub
 main: org.aylas.khron.tiemporeal.PluginTiempoReal
 depend: [LibConfig]
-api-version: 1.19
+api-version: '1.21.8'
 commands:
     trconfig:
         description: Cambia la configuración.
