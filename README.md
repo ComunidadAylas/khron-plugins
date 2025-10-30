@@ -1,4 +1,4 @@
-<p align="center"><img width="333" height="333" src="https://media.discordapp.net/attachments/123920670265573376/1090593703648841828/Aylas_Transparente_1024.png"></p>
+<p align="center"><img src="https://avatars.githubusercontent.com/u/38165202?s=333&v=4"></p>
 
 <p align="center"><a href="https://discord.gg/RVAgQRS"><img src="https://discordapp.com/api/guilds/85364538328768512/widget.png" alt="Discord"></a> <a href="https://github.com/ComunidadAylas/khron-plugins/blob/master/LICENSE"><img src="https://img.shields.io/github/license/ComunidadAylas/khron-plugins.svg" alt="Licencia"></a> <a href="https://github.com/ComunidadAylas/khron-plugins/issues"><img src="https://img.shields.io/github/issues/ComunidadAylas/khron-plugins.svg" alt="Incidencias"></a> <a href="https://github.com/ComunidadAylas/khron-plugins/actions?query=workflow%3A%22Maven+CI%22+event%3Apush"><img src="https://github.com/ComunidadAylas/khron-plugins/workflows/Maven%20CI/badge.svg?event=push" alt="Estado de compilación"></a> <img src="https://img.shields.io/github/repo-size/ComunidadAylas/khron-plugins.svg" alt="Tamaño del repositorio"></p>
 
