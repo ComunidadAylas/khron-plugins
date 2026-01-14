@@ -62,7 +62,7 @@ public final class SimuladorHipotermia extends BukkitRunnable implements Listene
 	 * Los efectos de congelación se empezarán a padecer realmente cuando la
 	 * diferencia de temperatura sea igual o mayor a 1ºC de la base.
 	 */
-	private static final float TEMPERATURA_MAXIMA_BASE = Math.nextDown(10 + 1);
+	private static final float TEMPERATURA_MAXIMA_BASE = Math.nextDown(0 + 1);
 	/**
 	 * El sonido que se reproducirá para indicarle al jugador que está empezando
 	 * a sufrir efectos de la hipotermia.
